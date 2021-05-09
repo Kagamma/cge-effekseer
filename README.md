@@ -47,4 +47,5 @@ Make sure to include necessary libraries, for example:
 - Windows: `-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -lopengl32 -lglu32 -lwinpthread`
 - Android: `-latomic -lm -landroid -lEGL -lGLESv2`
 
-
+###### Things that doesn't work
+- Sound: I don't plan on including Sound support at the moment.
