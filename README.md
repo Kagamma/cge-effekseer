@@ -11,7 +11,7 @@ Import `CastleEffekseer.pas`, `effekseer.pas` and corresponding binaries into yo
 Effect := TCastleEffekseer.Create(Application);
 Effect.Loop := False; // Do not loop the effect
 Effect.ReleaseWhenDone := True; // Automatically free Effect when it's done playing
-Effect.URL := 'castle-data://effect/smoke.efk';
+Effect.URL := 'castle-data:/effect/smoke.efk';
 Viewport.Items.Add(Effect);
 ```
 
