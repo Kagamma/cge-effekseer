@@ -32,12 +32,12 @@ There are 2 ways to do it:
 - Download [Effekseer for Runtime](https://effekseer.github.io/en/download.html "Effekseer for Runtime") directly from website. This is what I did, and the following guidelines will be based on this method.
 - Clone it from https://github.com/effekseer/Effekseer. This contains both runtime and editor.
 
-###### Patch MinGW (skip if you use Visual Studio or GCC)
+###### Patch for MinGW (skip if you use Visual Studio or GCC)
 Replace all `posix_` usages in runtime source code with cross-platform alternative (there are 3 places where this is used).
 
 ###### Generate makefiles
-First you need to copy `wrapper` from this repo and put it in Effekseer runtime's root directory.
-Add these lines to Effekseer runtime root CMakeLists.txt:
+You need to copy `wrapper` from this repo and put it in Effekseer runtime's root directory.
+Add these lines to Effekseer runtime's root CMakeLists.txt:
 
     if (BUILD_WRAPPER)
         add_subdirectory(wrapper)
