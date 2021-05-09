@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="TestEffekseer"
+  standalone_source="TestEffekseer_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="com.mycompany.TestEffekseer"
+  caption="TestEffekseer"
+  editor_units="CastleEffekseer"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+      <path value="../../src/" />
+    </search_paths>
+  </compiler_options>
+  <android>
+    <services>
+      <service name="effekseer" />
+    </services>
+  </android>
+</project>
