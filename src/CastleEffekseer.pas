@@ -317,7 +317,7 @@ end;
 initialization
   if not EFK_Load then
     raise Exception.Create('Cannot initialize Effekseer library!');
-  RegisterSerializableComponent(TCastleEffekseer, 'Effkseer Emitter');
+  RegisterSerializableComponent(TCastleEffekseer, 'Effekseer Emitter');
 
 finalization
 
