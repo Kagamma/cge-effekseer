@@ -1,6 +1,5 @@
 ﻿#if defined(__ANDROID__)
 	#define __cdecl
-	#define __stdcall
 	#define __EFFEKSEER_RENDERER_GLES2__
 #endif
 #if defined(__APPLE__)
@@ -186,26 +185,26 @@ extern "C" {
 
 // ----- Loader registers -----
 
-__dllexport void __stdcall EFK_Loader_RegisterLoadRoutine(loader_load_t func) {
+__dllexport void __cdecl EFK_Loader_RegisterLoadRoutine(loader_load_t func) {
 	loader_load = func;
 }
 
-__dllexport void __stdcall EFK_Loader_RegisterFreeRoutine(loader_free_t func) {
+__dllexport void __cdecl EFK_Loader_RegisterFreeRoutine(loader_free_t func) {
 	loader_free = func;
 }
 
 // ----- Manager -----
 
-__dllexport Manager* __stdcall EFK_Manager_Create(int maxInstance) {
+__dllexport Manager* __cdecl EFK_Manager_Create(int maxInstance) {
 	auto managerRef = Manager::Create(maxInstance);
 	return static_cast<Manager*>(managerRef.Pin());
 }
 
-__dllexport void __stdcall EFK_Manager_Destroy(Manager* manager) {
+__dllexport void __cdecl EFK_Manager_Destroy(Manager* manager) {
 	manager->Release();
 }
 
-__dllexport void __stdcall EFK_Manager_SetDefaultRenders(Manager* manager, Renderer* renderer) {
+__dllexport void __cdecl EFK_Manager_SetDefaultRenders(Manager* manager, Renderer* renderer) {
 	manager->SetSpriteRenderer(renderer->CreateSpriteRenderer());
 	manager->SetRibbonRenderer(renderer->CreateRibbonRenderer());
 	manager->SetRingRenderer(renderer->CreateRingRenderer());
@@ -213,7 +212,7 @@ __dllexport void __stdcall EFK_Manager_SetDefaultRenders(Manager* manager, Rende
 	manager->SetModelRenderer(renderer->CreateModelRenderer());
 }
 
-__dllexport void __stdcall EFK_Manager_SetDefaultLoaders(Manager* manager, Renderer* renderer) {
+__dllexport void __cdecl EFK_Manager_SetDefaultLoaders(Manager* manager, Renderer* renderer) {
 	if (loader_load != nullptr && loader_free != nullptr) {
 	//	manager->SetTextureLoader(EffekseerRenderer::CreateTextureLoader(renderer->GetGraphicsDevice(), new CastleFileInterface(), ColorSpaceType::Gamma));
 		manager->SetTextureLoader(TextureLoaderRef(new CastleTextureLoader(renderer->GetGraphicsDevice())));
@@ -228,25 +227,25 @@ __dllexport void __stdcall EFK_Manager_SetDefaultLoaders(Manager* manager, Rende
 	}
 }
 
-__dllexport void __stdcall EFK_Manager_Update(Manager* manager, float delta) {
+__dllexport void __cdecl EFK_Manager_Update(Manager* manager, float delta) {
 	manager->Update(delta);
 }
 
-__dllexport Handle __stdcall EFK_Manager_Play(Manager* manager, Effect* effect, float x, float y, float z) {
+__dllexport Handle __cdecl EFK_Manager_Play(Manager* manager, Effect* effect, float x, float y, float z) {
 	auto effectRef = RefPtr<Effect>(effect);
 	effectRef.Pin();
 	return manager->Play(effectRef, x, y, z);
 }
 
-__dllexport void __stdcall EFK_Manager_StopEffect(Manager* manager, Handle handle) {
+__dllexport void __cdecl EFK_Manager_StopEffect(Manager* manager, Handle handle) {
 	manager->StopEffect(handle);
 }
 
-__dllexport bool __stdcall EFK_Manager_Exists(Manager* manager, Handle handle) {
+__dllexport bool __cdecl EFK_Manager_Exists(Manager* manager, Handle handle) {
 	return manager->Exists(handle);
 }
 
-__dllexport void __stdcall EFK_Manager_SetMatrix(Manager* manager, Handle handle, float m[]) {
+__dllexport void __cdecl EFK_Manager_SetMatrix(Manager* manager, Handle handle, float m[]) {
 	Matrix43 m43;
 	m43.Value[0][0] = m[0];
 	m43.Value[0][1] = m[1];
@@ -265,54 +264,54 @@ __dllexport void __stdcall EFK_Manager_SetMatrix(Manager* manager, Handle handle
 
 // ----- Renderer -----
 
-__dllexport Renderer* __stdcall EFK_Renderer_Create(int squareMaxCount, OpenGLDeviceType deviceType, bool isExtensionsEnabled) {
+__dllexport Renderer* __cdecl EFK_Renderer_Create(int squareMaxCount, OpenGLDeviceType deviceType, bool isExtensionsEnabled) {
 	auto rendererRef = Renderer::Create(squareMaxCount, deviceType, isExtensionsEnabled);
 	return static_cast<Renderer*>(rendererRef.Pin());
 }
 
-__dllexport void __stdcall EFK_Renderer_Destroy(Renderer* renderer) {
+__dllexport void __cdecl EFK_Renderer_Destroy(Renderer* renderer) {
 	renderer->Release();
 }
 
-__dllexport void __stdcall EFK_Renderer_SetViewMatrix(Renderer* renderer, float m[]) {
+__dllexport void __cdecl EFK_Renderer_SetViewMatrix(Renderer* renderer, float m[]) {
 	Matrix44 m44;
 	memcpy(m44.Values, m, sizeof(float) * 16);
 	renderer->SetCameraMatrix(m44);
 }
 
-__dllexport void __stdcall EFK_Renderer_SetProjectionMatrix(Renderer* renderer, float m[]) {
+__dllexport void __cdecl EFK_Renderer_SetProjectionMatrix(Renderer* renderer, float m[]) {
 	Matrix44 m44;
 	memcpy(m44.Values, m, sizeof(float) * 16);
 	renderer->SetProjectionMatrix(m44);
 }
 
-__dllexport void __stdcall EFK_Renderer_Render(Renderer* renderer, Manager* manager) {
+__dllexport void __cdecl EFK_Renderer_Render(Renderer* renderer, Manager* manager) {
 	renderer->BeginRendering();
 	manager->Draw();
 	renderer->EndRendering();
 }
 
-__dllexport int32_t __stdcall EFK_Renderer_GetDrawCallCount(Renderer* renderer) {
+__dllexport int32_t __cdecl EFK_Renderer_GetDrawCallCount(Renderer* renderer) {
 	return renderer->GetDrawCallCount();
 }
 
 // ----- Effect -----
 
-__dllexport Effect* __stdcall EFK_Effect_CreateWithFile(Manager* manager, char16_t* fileName) {
+__dllexport Effect* __cdecl EFK_Effect_CreateWithFile(Manager* manager, char16_t* fileName) {
 	auto managerRef = RefPtr<Manager>(manager);
 	managerRef.Pin();
 	auto effectRef = Effect::Create(managerRef, fileName);
 	return static_cast<Effect*>(effectRef.Pin());
 }
 
-__dllexport Effect* __stdcall EFK_Effect_CreateWithMemory(Manager* manager, void* data, int32_t size, char16_t* materialPath) {
+__dllexport Effect* __cdecl EFK_Effect_CreateWithMemory(Manager* manager, void* data, int32_t size, char16_t* materialPath) {
 	auto managerRef = RefPtr<Manager>(manager);
 	managerRef.Pin();
 	auto effectRef = Effect::Create(managerRef, data, size, 1.0f, materialPath);
 	return static_cast<Effect*>(effectRef.Pin());
 }
 
-__dllexport void __stdcall EFK_Effect_Destroy(Effect* effect) {
+__dllexport void __cdecl EFK_Effect_Destroy(Effect* effect) {
 	effect->Release();
 }
 
