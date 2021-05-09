@@ -1,14 +1,14 @@
 ﻿#if defined(__ANDROID__)
-    #define __cdecl
+	#define __cdecl
 	#define __stdcall
 	#define __EFFEKSEER_RENDERER_GLES2__
 #endif
 #if defined(__APPLE__)
-    #if defined(TARGET_IPHONE_SIMULATOR) && defined(TARGET_OS_IPHONE)
-        #define __EFFEKSEER_RENDERER_GLES2__
-    #endif
+	#if defined(TARGET_IPHONE_SIMULATOR) && defined(TARGET_OS_IPHONE)
+		#define __EFFEKSEER_RENDERER_GLES2__
+	#endif
 #endif
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 	#define __dllexport __declspec(dllexport)
 #else
 	#define __dllexport
