@@ -1,11 +1,11 @@
 This repository is an experimental effort attempt at integrating Effekseer into Castle Game Engine.
 
 ### Precompiled dynamic library
-For lazy people ;). It contains binaries for win32, win64 and android : https://drive.google.com/file/d/1trF_9hx55ajKUVSv4X3AF3fQBZcGWj28/view?usp=sharing
+For lazy people ;). This contains binaries for win32, win64 and android, built with -O3 optimization : https://drive.google.com/file/d/1trF_9hx55ajKUVSv4X3AF3fQBZcGWj28/view?usp=sharing
 
 ### How to use
 
-Import `CastleEffekseer.pas`, `effekseer.pas` and corresponding binaries into your project.  Include `CastleEffekseer` unit in your code. The unit contains `TCastleEffekseer`, which is a descendant of `TCastleSceneCore`, you can use it to load effects like how you normally load model with `TCastleScene`.
+Import `CastleEffekseer.pas`, `effekseer.pas` and corresponding binaries into your project.  Add `CastleEffekseer` unit in your code. The unit contains `TCastleEffekseer`, which is descendant of `TCastleSceneCore`, you can use it to load effects like how you normally load model with `TCastleScene`.
 
 ```delphi
 Effect := TCastleEffekseer.Create(Application);
