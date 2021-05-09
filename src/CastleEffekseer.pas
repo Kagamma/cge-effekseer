@@ -101,7 +101,7 @@ begin
 end;
 
 { Provide loader function for Effekseer }
-procedure LoaderLoad(FileName: PWideChar; var MS: TMemoryStream; var Data: Pointer; var Size: LongWord);
+procedure LoaderLoad(FileName: PWideChar; var MS: TMemoryStream; var Data: Pointer; var Size: LongWord); cdecl;
 var
   S: String;
 begin
@@ -110,6 +110,7 @@ begin
     // In case it load a material, force it to load .efkmat instead of .efkmatd
     if LowerCase(ExtractFileExt(FileName)) = '.efkmatd' then
       Delete(S, Length(S), 1);
+    Writeln(S);
     MS := Download(S, [soForceMemoryStream]) as TMemoryStream;
     Data := MS.Memory;
     Size := MS.Size;
@@ -117,7 +118,7 @@ begin
     // We ignore exception, and return null instead
     on E: Exception do
     begin
-      WritelnLog('Warning', E.Message);
+      WritelnLog('Error', E.Message + ' while loading ' + S);
       MS := nil;
       Data := nil;
       Size := 0;
@@ -126,7 +127,7 @@ begin
 end;
 
 { Free FP's Stream object }
-procedure LoaderFree(MS: TMemoryStream);
+procedure LoaderFree(MS: TMemoryStream); cdecl;
 begin
   FreeAndNil(MS);
 end;
