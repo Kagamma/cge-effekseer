@@ -1,7 +1,7 @@
 This repository is an experimental effort attempt at integrating Effekseer into Castle Game Engine.
 
 ### Precompiled dynamic library
-For lazy people ;). It contains binaries for win32, win64 and android (-O3 optimization) : https://drive.google.com/file/d/1trF_9hx55ajKUVSv4X3AF3fQBZcGWj28/view?usp=sharing
+For lazy people ;). It contains binaries for win32, win64 and android, built with -O3 optimization : https://drive.google.com/file/d/1trF_9hx55ajKUVSv4X3AF3fQBZcGWj28/view?usp=sharing
 
 ### How to use
 
