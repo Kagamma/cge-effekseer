@@ -15,7 +15,7 @@ Effect.URL := 'castle-data://effect/smoke.efk';
 Viewport.Items.Add(Effect);
 ```
 
-Global variables that can be set at `initialization` block:
+Global variables that can be set in `initialization` block:
 
 -   `EfkMaximumNumberOfInstances`: Maximum number of emitter instances, default is 1024
 -   `EfkMaximumNumberOfSquares`: Maximum number of particles, default is 16384 for desktop, and 8192 for mobile platform.
