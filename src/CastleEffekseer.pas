@@ -22,16 +22,26 @@
 
 unit CastleEffekseer;
 
+{$mode delphi}
+
 interface
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, Generics.Collections,
   Effekseer,
   CastleVectors, CastleSceneCore, CastleApplicationProperties, CastleTransform, CastleComponentSerialize,
   CastleBoxes, CastleUtils, CastleLog, CastleRenderContext, CastleGLShaders, CastleDownload, CastleURIUtils,
   CastleImages;
 
 type
+  TEfkEffectCacheBase = TDictionary<String, Pointer>;
+
+  TEfkEffectCache = class(TEfkEffectCacheBase)
+  public
+    destructor Destroy; override;
+    procedure Clear; override;
+  end;
+
   TCastleEffekseer = class(TCastleSceneCore)
   strict private
     FURL: String;
@@ -86,6 +96,7 @@ var
   EfkRenderer: Pointer;
   IsManagerUpdated: Boolean = False;
   CurrentOpenGLContext: Integer;
+  EffectCache: TEfkEffectCache;
 
 { Called when OpenGL context is closed }
 procedure FreeEfkContext;
@@ -152,6 +163,25 @@ begin
   FreeAndNil(MS);
 end;
 
+{ ----- TEfkEffectCache ----- }
+
+destructor TEfkEffectCache.Destroy;
+begin
+  Self.Clear;
+  inherited;
+end;
+
+procedure TEfkEffectCache.Clear;
+var
+  Key: String;
+begin
+  // TODO: Need to check if current effect is in use or not for safety
+  // For now we can only call this before & after the use of effects
+  for Key in Self.Keys do
+    EFK_Effect_Destroy(Self[Key]);
+  inherited;
+end;
+
 { ----- TCastleEffekseer ----- }
 
 procedure TCastleEffekseer.GLContextOpen;
@@ -207,14 +237,29 @@ begin
     // the same place as .efk file
     Path := ExtractURIPath(Self.FURL);
     StringToWideChar(Path, P, Length(Path) + 1);
-    // We use Download to create a TMemoryStream, then pass the pointer to EFK loader
-    MS := Download(Self.FURL, [soForceMemoryStream]) as TMemoryStream;
-
-    Self.EfkEffect := EFK_Effect_CreateWithMemory(EfkManager, MS.Memory, MS.Size, P);
+    if not CastleDesignMode then
+    begin
+      if not EffectCache.ContainsKey(Self.FURL) then
+      begin
+        // We use Download to create a TMemoryStream, then pass the pointer to EFK loader
+        MS := Download(Self.FURL, [soForceMemoryStream]) as TMemoryStream;
+        Self.EfkEffect := EFK_Effect_CreateWithMemory(EfkManager, MS.Memory, MS.Size, P);
+        FreeAndNil(MS);
+        EffectCache.Add(Self.FURL, Self.EfkEffect);
+      end else
+      begin
+        Self.EfkEffect := EffectCache[Self.FURL];
+      end;
+    end else
+    // We dont cache effect in design mode
+    begin
+      // We use Download to create a TMemoryStream, then pass the pointer to EFK loader
+      MS := Download(Self.FURL, [soForceMemoryStream]) as TMemoryStream;
+      Self.EfkEffect := EFK_Effect_CreateWithMemory(EfkManager, MS.Memory, MS.Size, P);
+      FreeAndNil(MS);
+    end;
     Self.EfkHandle := EFK_Manager_Play(EfkManager, Self.EfkEffect, 0, 0, 0);
     Self.FIsNeedRefresh := False;
-
-    FreeAndNil(MS);
   end;
 end;
 
@@ -241,7 +286,8 @@ end;
 
 procedure TCastleEffekseer.GLContextClose;
 begin
-  if Self.FIsGLContextInitialized then
+  // We dont cache effect in design mode, so we free it here
+  if CastleDesignMode and Self.FIsGLContextInitialized then
   begin
     if Self.EfkEffect <> nil then
     begin
@@ -341,7 +387,9 @@ initialization
   if not EFK_Load then
     raise Exception.Create('Cannot initialize Effekseer library!');
   RegisterSerializableComponent(TCastleEffekseer, 'Effekseer Emitter');
+  EffectCache := TEfkEffectCache.Create;
 
 finalization
+  EffectCache.Free;
 
 end.
