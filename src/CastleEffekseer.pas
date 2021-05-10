@@ -28,7 +28,8 @@ uses
   Classes, SysUtils,
   Effekseer,
   CastleVectors, CastleSceneCore, CastleApplicationProperties, CastleTransform, CastleComponentSerialize,
-  CastleBoxes, CastleUtils, CastleLog, CastleRenderContext, CastleGLShaders, CastleDownload, CastleURIUtils;
+  CastleBoxes, CastleUtils, CastleLog, CastleRenderContext, CastleGLShaders, CastleDownload, CastleURIUtils,
+  CastleImages;
 
 type
   TCastleEffekseer = class(TCastleSceneCore)
@@ -79,6 +80,8 @@ var
   EfkDesktopRenderBackend: TEfkOpenGLDeviceType = edtOpenGL2;
   { Set graphics backend for mobile platform }
   EfkMobileRenderBackend: TEfkOpenGLDeviceType = edtOpenGLES2;
+  { Use CGE's own image loader }
+  EfkUseCGEImageLoader: Boolean = True;
 
 implementation
 
@@ -110,7 +113,6 @@ begin
     // In case it load a material, force it to load .efkmat instead of .efkmatd
     if LowerCase(ExtractFileExt(FileName)) = '.efkmatd' then
       Delete(S, Length(S), 1);
-    Writeln(S);
     MS := Download(S, [soForceMemoryStream]) as TMemoryStream;
     Data := MS.Memory;
     Size := MS.Size;
@@ -118,10 +120,32 @@ begin
     // We ignore exception, and return null instead
     on E: Exception do
     begin
-      WritelnLog('Error', E.Message + ' while loading ' + S);
+      WritelnLog('Error', 'LoaderLoad: ' + E.Message + ' while loading ' + S);
       MS := nil;
       Data := nil;
       Size := 0;
+    end;
+  end;
+end;
+
+{ Provide image loader function for Effekseer }
+procedure LoaderLoadImageFromFile(FileName: PWideChar; var Image: TCastleImage; var Data: Pointer; var Width, Height, Bpp: LongWord); cdecl;
+var
+  S: String;
+begin
+  try
+    Image := LoadImage(FileName);
+    Data := Image.RawPixels;
+    Width := Image.Width;
+    Height := Image.Height;
+    Bpp := Image.PixelSize;
+  except
+    // We ignore exception, and return null instead
+    on E: Exception do
+    begin
+      WritelnLog('Error', 'LoadImageFromFile: ' + E.Message + ' while loading ' + S);
+      Image := nil;
+      Data := nil;
     end;
   end;
 end;
@@ -158,6 +182,8 @@ begin
 
     EFK_Loader_RegisterLoadRoutine(@LoaderLoad);
     EFK_Loader_RegisterFreeRoutine(@LoaderFree);
+    if EfkUseCGEImageLoader then
+      EFK_Loader_RegisterLoadImageFromFileRoutine(@LoaderLoadImageFromFile);
 
     EFK_Manager_SetDefaultRenders(EfkManager, EfkRenderer);
     EFK_Manager_SetDefaultLoaders(EfkManager, EfkRenderer);

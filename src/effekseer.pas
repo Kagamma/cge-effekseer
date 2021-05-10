@@ -28,6 +28,8 @@ var
   // ----- Loader -----
   { FileName: PWideChar; var PasObj, Data: Pointer; var Size: cuint32 }
   EFK_Loader_RegisterLoadRoutine: procedure(Func: Pointer); EFKCALL;
+  { FileName: PWideChar; var PasObj, Data: Pointer; var Width, Height, Bpp: cuint32 }
+  EFK_Loader_RegisterLoadImageFromFileRoutine: procedure(Func: Pointer); EFKCALL;
   { PasObj: Pointer }
   EFK_Loader_RegisterFreeRoutine: procedure(Func: Pointer); EFKCALL;
 
@@ -70,6 +72,7 @@ begin;
   if Lib = dynlibs.NilHandle then Exit(False);
 
   EFK_Loader_RegisterLoadRoutine := GetProcedureAddress(Lib, 'EFK_Loader_RegisterLoadRoutine');
+  EFK_Loader_RegisterLoadImageFromFileRoutine := GetProcedureAddress(Lib, 'EFK_Loader_RegisterLoadImageFromFileRoutine');
   EFK_Loader_RegisterFreeRoutine := GetProcedureAddress(Lib, 'EFK_Loader_RegisterFreeRoutine');
 
   EFK_Manager_Create := GetProcedureAddress(Lib, 'EFK_Manager_Create');

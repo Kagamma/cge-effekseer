@@ -32,9 +32,12 @@ using namespace EffekseerUtils;
 typedef void (*loader_load_t)(const char16_t*, void**, void**, int32_t*);
 // params: objPas
 typedef void (*loader_free_t)(void*);
+// params: filePath, objPas, data, width, height, bpp
+typedef void (*loader_loadImageFromFile_t)(const char16_t*, void**, uint8_t**, int32_t*, int32_t*, int32_t*);
 
 loader_load_t loader_load = nullptr;
 loader_free_t loader_free = nullptr;
+loader_loadImageFromFile_t loader_loadImageFromFile = nullptr;
 
 // Custom Loaders
 
@@ -106,78 +109,78 @@ public:
 		void* data;
 		void* objPas;
 		int32_t size;
-		loader_load(path, &objPas, &data, &size);
-		if (data != nullptr) {
-			std::vector<uint8_t> textureData;
-			// Load image via stbi
-			int width;
-			int height;
-			int bpp;
-			uint8_t* pixels = (uint8_t*)stbi_load_from_memory((stbi_uc const*)data, size, &width, &height, &bpp, 0);
-			loader_free(objPas);
+		std::vector<uint8_t> textureData;
+		int width;
+		int height;
+		int bpp;
+		uint8_t* pixels;
+		//
+		if (loader_loadImageFromFile != nullptr) {
+			loader_loadImageFromFile(path, &objPas, &pixels, &width, &height, &bpp);
+		} else {
+			loader_load(path, &objPas, &data, &size);
+			pixels = (uint8_t*)stbi_load_from_memory((stbi_uc const*)data, size, &width, &height, &bpp, 0);
+			if (data == nullptr) return nullptr;
+		}
 
-			if (width == 0) {
-				stbi_image_free(pixels);
-				return nullptr;
-			} else {
-				textureData.resize(width * height * 4);
-				auto buf = textureData.data();
+		textureData.resize(width * height * 4);
+		auto buf = textureData.data();
 
-				if (bpp == 4) {
-					memcpy(textureData.data(), pixels, width * height * 4);
-				} else if (bpp == 2) {
-					for (int h = 0; h < height; h++) {
-						for (int w = 0; w < width; w++) {
-							((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 2 + 0];
-							((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 2 + 0];
-							((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 2 + 0];
-							((uint8_t*)buf)[(w + h * width) * 4 + 3] = pixels[(w + h * width) * 2 + 1];
-						}
-					}
-				} else if (bpp == 1) {
-					for (int h = 0; h < height; h++) {
-						for (int w = 0; w < width; w++) {
-							((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 1 + 0];
-							((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 1 + 0];
-							((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 1 + 0];
-							((uint8_t*)buf)[(w + h * width) * 4 + 3] = 255;
-						}
-					}
-				} else {
-					for (int h = 0; h < height; h++) {
-						for (int w = 0; w < width; w++) {
-							((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 3 + 0];
-							((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 3 + 1];
-							((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 3 + 2];
-							((uint8_t*)buf)[(w + h * width) * 4 + 3] = 255;
-						}
-					}
+		if (bpp == 4) {
+			memcpy(textureData.data(), pixels, width * height * 4);
+		} else if (bpp == 2) {
+			for (int h = 0; h < height; h++) {
+				for (int w = 0; w < width; w++) {
+					((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 2 + 0];
+					((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 2 + 0];
+					((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 2 + 0];
+					((uint8_t*)buf)[(w + h * width) * 4 + 3] = pixels[(w + h * width) * 2 + 1];
 				}
 			}
-			stbi_image_free(pixels);
-			// v1.6 detect no mipmap by checking texture file name for "_NoMip"
-			std::u16string s = path;
-			std::wstring tmp(L"_nomip");
-			std::u16string noMipStr(tmp.begin(), tmp.end());
-			std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c){ return std::tolower(c); });
-			bool isMipMap;
-			if (s.find(noMipStr) != std::u16string::npos) {
-				isMipMap = false;
-			} else {
-				isMipMap = true;
+		} else if (bpp == 1) {
+			for (int h = 0; h < height; h++) {
+				for (int w = 0; w < width; w++) {
+					((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 1 + 0];
+					((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 1 + 0];
+					((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 1 + 0];
+					((uint8_t*)buf)[(w + h * width) * 4 + 3] = 255;
+				}
 			}
-			Backend::TextureParameter param;
-			param.Size = {width, height};
-			param.Format = Backend::TextureFormatType::R8G8B8A8_UNORM;
-			param.GenerateMipmap = isMipMap;
-			param.InitialData.assign(textureData.data(), textureData.data() + width * height * 4);
-
-			auto texture = MakeRefPtr<Texture>();
-			texture->SetBackend(graphicsDevice->CreateTexture(param));
-
-			return texture;
+		} else {
+			for (int h = 0; h < height; h++) {
+				for (int w = 0; w < width; w++) {
+					((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 3 + 0];
+					((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 3 + 1];
+					((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 3 + 2];
+					((uint8_t*)buf)[(w + h * width) * 4 + 3] = 255;
+				}
+			}
 		}
-		return nullptr;
+		if (loader_loadImageFromFile == nullptr) {
+			stbi_image_free(pixels);
+		}
+		loader_free(objPas);
+		// v1.6 detect no mipmap by checking texture file name for "_NoMip"
+		std::u16string s = path;
+		std::wstring tmp(L"_nomip");
+		std::u16string noMipStr(tmp.begin(), tmp.end());
+		std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c){ return std::tolower(c); });
+		bool isMipMap;
+		if (s.find(noMipStr) != std::u16string::npos) {
+			isMipMap = false;
+		} else {
+			isMipMap = true;
+		}
+		Backend::TextureParameter param;
+		param.Size = {width, height};
+		param.Format = Backend::TextureFormatType::R8G8B8A8_UNORM;
+		param.GenerateMipmap = isMipMap;
+		param.InitialData.assign(textureData.data(), textureData.data() + width * height * 4);
+
+		auto texture = MakeRefPtr<Texture>();
+		texture->SetBackend(graphicsDevice->CreateTexture(param));
+
+		return texture;
 	}
 };
 
@@ -191,6 +194,10 @@ __dllexport void __cdecl EFK_Loader_RegisterLoadRoutine(loader_load_t func) {
 
 __dllexport void __cdecl EFK_Loader_RegisterFreeRoutine(loader_free_t func) {
 	loader_free = func;
+}
+
+__dllexport void __cdecl EFK_Loader_RegisterLoadImageFromFileRoutine(loader_loadImageFromFile_t func) {
+	loader_loadImageFromFile = func;
 }
 
 // ----- Manager -----
