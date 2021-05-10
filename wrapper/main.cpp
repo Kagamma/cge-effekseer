@@ -12,6 +12,9 @@
 #else
 	#define __dllexport
 #endif
+#if defined(__GNUC__)
+	#define __cdecl __attribute__((__cdecl__))
+#endif
 #define STB_IMAGE_EFK_IMPLEMENTATION
 
 #include <stdio.h>
