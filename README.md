@@ -45,9 +45,11 @@ Add these lines to Effekseer runtime's root CMakeLists.txt:
         add_subdirectory(wrapper)
     endif()
 Generate makefiles, remember to enable `BUILD_WRAPPER`, `BUILD_SHARED_LIBS`, `USE_OPENGL3` (for desktop), `USE_OPENGLES2` (for mobile platform). The rest of the flags can be disabled.
-Make sure to include necessary libraries, for example:
+Make sure to include necessary libraries in `CMAKE_CXX_STANDARD_LIBRARIES`, for example:
 - Windows: `-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -lopengl32 -lglu32 -lwinpthread`
 - Android: `-latomic -lm -landroid -lEGL -lGLESv2`
+
+For Linux, need to add `-fPIC` flag to `CMAKE_CXX_FLAGS`.
 
 ### Things that doesn't work
 - Sound: I don't plan on including Sound support at the moment.
