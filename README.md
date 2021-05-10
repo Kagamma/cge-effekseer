@@ -51,5 +51,7 @@ Make sure to include necessary libraries in `CMAKE_CXX_STANDARD_LIBRARIES`, for 
 
 For Linux, need to add `-fPIC` flag to `CMAKE_CXX_FLAGS`.
 
+If everything build successfully, the result library can be found in `wrapper` directory.
+
 ### Things that doesn't work
 - Sound: I don't plan on including Sound support at the moment.
