@@ -40,6 +40,7 @@ Replace all `posix_` usages in runtime source code with cross-platform alternati
 You need to copy `wrapper` from this repo and put it in Effekseer runtime's root directory.
 Add these lines to Effekseer runtime's root CMakeLists.txt:
 
+    option(BUILD_WRAPPER "Build wrapper" ON)
     if (BUILD_WRAPPER)
         add_subdirectory(wrapper)
     endif()
