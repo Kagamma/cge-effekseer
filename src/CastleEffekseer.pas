@@ -229,7 +229,7 @@ begin
   Self.FIsNeedRefresh := False;
   Self.EfkEffect := nil;
   Self.EfkHandle := -1;
-  Self.FReleaseWhenDone := True;
+  Self.FReleaseWhenDone := False;
 end;
 
 destructor TCastleEffekseer.Destroy;
@@ -277,7 +277,8 @@ begin
     IsManagerUpdated := True;
     Self.FSecondsPassed := SecondsPassed;
 
-    if Self.FReleaseWhenDone and (not Self.FIsExistsInManager) then
+    // Yes we dont want this happen while in design mode...
+    if Self.FReleaseWhenDone and (not Self.FIsExistsInManager) and (not CastleDesignMode) then
     begin
       RemoveMe := rtRemoveAndFree;
     end;
