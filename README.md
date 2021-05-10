@@ -21,6 +21,7 @@ Global variables that can be set in `initialization` block:
 -   `EfkMaximumNumberOfSquares`: Maximum number of particles, default is 16384 for desktop, and 8192 for mobile platform.
 -   `EfkDesktopRenderBackend`: Desktop render backend, default is OpenGL 2.
 -   `EfkMobileRenderBackend`: Mobile render backend, default is OpenGL ES2.
+-   `EfkUseCGEImageLoader`: Use Castle Game Engine's TCastleImage to load images, default is True.
 
 It's also integrate in the editor. You can put `CastleEffekseer` in editor_units in your `CastleEngineManifest.xml`, and it will register new component `Effkseer Emitter`.
 
@@ -39,13 +40,18 @@ Replace all `posix_` usages in runtime source code with cross-platform alternati
 You need to copy `wrapper` from this repo and put it in Effekseer runtime's root directory.
 Add these lines to Effekseer runtime's root CMakeLists.txt:
 
+    option(BUILD_WRAPPER "Build wrapper" ON)
     if (BUILD_WRAPPER)
         add_subdirectory(wrapper)
     endif()
 Generate makefiles, remember to enable `BUILD_WRAPPER`, `BUILD_SHARED_LIBS`, `USE_OPENGL3` (for desktop), `USE_OPENGLES2` (for mobile platform). The rest of the flags can be disabled.
-Make sure to include necessary libraries, for example:
+Make sure to include necessary libraries in `CMAKE_CXX_STANDARD_LIBRARIES`, for example:
 - Windows: `-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -lopengl32 -lglu32 -lwinpthread`
 - Android: `-latomic -lm -landroid -lEGL -lGLESv2`
+
+For Linux, need to add `-fPIC` flag to `CMAKE_CXX_FLAGS`.
+
+If everything build successfully, the result library can be found in `wrapper` directory.
 
 ### Things that doesn't work
 - Sound: I don't plan on including Sound support at the moment.
