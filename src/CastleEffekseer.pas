@@ -68,14 +68,10 @@ type
   end;
 
 var
-  { The maximum number of emitter instances }
+  { Maximum number of instances }
   EfkMaximumNumberOfInstances: Integer = 8192;
-  { The maximum number of particles }
-  {$if defined(ANDROID) or defined(IOS)}
-    EfkMaximumNumberOfSquares: Integer = 8192;
-  {$else}
-    EfkMaximumNumberOfSquares: Integer = 16384;
-  {$endif}
+  { Maximum number of squares }
+  EfkMaximumNumberOfSquares: Integer = 8192;
   { Set graphics backend for desktop platform }
   EfkDesktopRenderBackend: TEfkOpenGLDeviceType = edtOpenGL2;
   { Set graphics backend for mobile platform }
