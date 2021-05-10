@@ -2,10 +2,10 @@ unit effekseer;
 
 {$mode delphi}
 {$ifdef windows}
-  {$define EFKCALL:=stdcall}
+  {$define EFKCALL:=cdecl}
   {$define EFKLIB:='libeffekseer.dll'}
 {$else}
-  {$define EFKCALL:=stdcall}
+  {$define EFKCALL:=cdecl}
   {$define EFKLIB:='libeffekseer.so'}
 {$endif}
 
