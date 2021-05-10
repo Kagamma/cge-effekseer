@@ -69,7 +69,7 @@ type
 
 var
   { The maximum number of emitter instances }
-  EfkMaximumNumberOfInstances: Integer = 1024;
+  EfkMaximumNumberOfInstances: Integer = 8192;
   { The maximum number of particles }
   {$if defined(ANDROID) or defined(IOS)}
     EfkMaximumNumberOfSquares: Integer = 8192;
@@ -80,7 +80,7 @@ var
   EfkDesktopRenderBackend: TEfkOpenGLDeviceType = edtOpenGL2;
   { Set graphics backend for mobile platform }
   EfkMobileRenderBackend: TEfkOpenGLDeviceType = edtOpenGLES2;
-  { Use CGE's own image loader }
+  { Use CGE's own image loader. If set to false then it will fallback to use stb as loader }
   EfkUseCGEImageLoader: Boolean = True;
 
 implementation

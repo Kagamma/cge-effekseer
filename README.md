@@ -17,7 +17,7 @@ Viewport.Items.Add(Effect);
 
 Global variables that can be set in `initialization` block:
 
--   `EfkMaximumNumberOfInstances`: Maximum number of emitter instances, default is 1024
+-   `EfkMaximumNumberOfInstances`: Maximum number of emitter instances, default is 8192
 -   `EfkMaximumNumberOfSquares`: Maximum number of particles, default is 16384 for desktop, and 8192 for mobile platform.
 -   `EfkDesktopRenderBackend`: Desktop render backend, default is OpenGL 2.
 -   `EfkMobileRenderBackend`: Mobile render backend, default is OpenGL ES2.
