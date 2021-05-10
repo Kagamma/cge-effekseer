@@ -21,6 +21,7 @@ Global variables that can be set in `initialization` block:
 -   `EfkMaximumNumberOfSquares`: Maximum number of particles, default is 16384 for desktop, and 8192 for mobile platform.
 -   `EfkDesktopRenderBackend`: Desktop render backend, default is OpenGL 2.
 -   `EfkMobileRenderBackend`: Mobile render backend, default is OpenGL ES2.
+-   `EfkUseCGEImageLoader`: Use Castle Game Engine's TCastleImage to load images, default is True.
 
 It's also integrate in the editor. You can put `CastleEffekseer` in editor_units in your `CastleEngineManifest.xml`, and it will register new component `Effkseer Emitter`.
 
