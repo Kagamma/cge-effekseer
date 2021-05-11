@@ -7,7 +7,7 @@ unit effekseer;
   {$define EFKLIB:='libeffekseer.dll'}
 {$elseif defined(darwin)}
   {$define EFKLIB:='libeffekseer.dylib'}
-{$elsese}
+{$else}
   {$define EFKLIB:='libeffekseer.so'}
 {$endif}
 

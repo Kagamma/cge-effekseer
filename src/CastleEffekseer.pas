@@ -400,7 +400,6 @@ begin
     // Since Effekseer has it's own culling, and there's a lack of information on which handle is visible,
     // these statistics are not accurate when represent TCastleEffekseer
     Inc(Params.Statistics.ScenesVisible);
-    Inc(Params.Statistics.ShapesVisible);
     Inc(Params.Statistics.ScenesRendered);
   end;
   if not IsManagerUpdated then
@@ -416,6 +415,7 @@ begin
 
   // DrawCalls is considered as "ShapesRendered" at the moment
   DrawCalls := EFK_Renderer_GetDrawCallCount(EfkRenderer);
+  Inc(Params.Statistics.ShapesVisible, DrawCalls);
   Inc(Params.Statistics.ShapesRendered, DrawCalls);
 
   IsManagerUpdated := False;

@@ -305,7 +305,9 @@ __dllexport void __cdecl EFK_Renderer_Render(Renderer* renderer, Manager* manage
 }
 
 __dllexport int32_t __cdecl EFK_Renderer_GetDrawCallCount(Renderer* renderer) {
-	return renderer->GetDrawCallCount();
+	int32_t result = renderer->GetDrawCallCount();
+	renderer->ResetDrawCallCount();
+	return result;
 }
 
 // ----- Effect -----
