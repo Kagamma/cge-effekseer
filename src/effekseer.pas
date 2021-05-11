@@ -42,7 +42,7 @@ var
   EFK_Manager_SetDefaultRenders: procedure(Manager, Renderer: Pointer); EFKCALL;
   EFK_Manager_SetDefaultLoaders: procedure(Manager, Renderer: Pointer); EFKCALL;
   EFK_Manager_Update: procedure(Manager: Pointer; Delta: cfloat); EFKCALL;
-  EFK_Manager_Play: function(Manager, Effect: Pointer; X, Y, Z: cfloat): cint32; EFKCALL;
+  EFK_Manager_Play: function(Manager, Effect: Pointer; Vector3: Pointer; StartFrame: cint32): cint32; EFKCALL;
   EFK_Manager_StopEffect: procedure(Manager: Pointer; Handle: cint32); EFKCALL;
   EFK_Manager_Exists: function(Manager: Pointer; Handle: cint32): cbool; EFKCALL;
   EFK_Manager_SetMatrix: procedure(Manager: Pointer; Handle: cint32; M: TEfkMatrix44Ptr); EFKCALL;

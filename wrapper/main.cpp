@@ -243,10 +243,10 @@ __dllexport void __cdecl EFK_Manager_Update(Manager* manager, float delta) {
 	manager->Update(delta);
 }
 
-__dllexport Handle __cdecl EFK_Manager_Play(Manager* manager, Effect* effect, float x, float y, float z) {
+__dllexport Handle __cdecl EFK_Manager_Play(Manager* manager, Effect* effect, Vector3D* position, int32_t startFrame) {
 	auto effectRef = RefPtr<Effect>(effect);
 	effectRef.Pin();
-	return manager->Play(effectRef, x, y, z);
+	return manager->Play(effectRef, *position, startFrame);
 }
 
 __dllexport void __cdecl EFK_Manager_StopEffect(Manager* manager, Handle handle) {

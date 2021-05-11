@@ -255,6 +255,7 @@ var
   MS: TMemoryStream;
   EffectRef: PEfkEffectRef;
   Key: String;
+  M: TMatrix4;
 begin
   if EfkManager <> nil then
   begin
@@ -303,7 +304,8 @@ begin
       Self.EfkEffect := EFK_Effect_CreateWithMemory(EfkManager, MS.Memory, MS.Size, P);
       FreeAndNil(MS);
     end;
-    Self.EfkHandle := EFK_Manager_Play(EfkManager, Self.EfkEffect, 0, 0, 0);
+    M := Self.WorldTransform;
+    Self.EfkHandle := EFK_Manager_Play(EfkManager, Self.EfkEffect, @M.Data[3,0], 0);
     Self.FIsNeedRefresh := False;
   end;
 end;
@@ -353,6 +355,8 @@ begin
 end;
 
 procedure TCastleEffekseer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  M: TMatrix4;
 begin
   inherited;
   Self.GLContextOpen;
@@ -367,7 +371,8 @@ begin
     Self.FIsExistsInManager := EFK_Manager_Exists(EfkManager, Self.EfkHandle);
     if Self.FLoop and (not Self.FIsExistsInManager) then
     begin
-      Self.EfkHandle := EFK_Manager_Play(EfkManager, Self.EfkEffect, 0, 0, 0);
+      M := Self.WorldTransform;
+      Self.EfkHandle := EFK_Manager_Play(EfkManager, Self.EfkEffect, @M.Data[3,0], 0);
       Self.FIsExistsInManager := True;
     end;
 
