@@ -28,7 +28,7 @@ It's also integrate in the editor. You can put `CastleEffekseer` in editor_units
 ### Generate dynamic library guidelines
 This section is for people who want to build Effekseer dynamic library. I am not really good at cmake, and this is written with Windows and cmake-gui in mind.
 
-###### Obtain Effekser official runtime
+###### Obtain Effekseer official runtime
 There are 2 ways to do it:
 - Download [Effekseer for Runtime](https://effekseer.github.io/en/download.html "Effekseer for Runtime") directly from website. This is what I did, and the following guidelines will be based on this method.
 - Clone it from https://github.com/effekseer/Effekseer. This contains both runtime and editor.
