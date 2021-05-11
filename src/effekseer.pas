@@ -1,5 +1,6 @@
 unit effekseer;
 
+{$macro on}
 {$mode delphi}
 {$ifdef windows}
   {$define EFKCALL:=cdecl}
