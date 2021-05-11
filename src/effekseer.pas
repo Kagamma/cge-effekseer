@@ -46,6 +46,7 @@ var
   EFK_Manager_StopEffect: procedure(Manager: Pointer; Handle: cint32); EFKCALL;
   EFK_Manager_Exists: function(Manager: Pointer; Handle: cint32): cbool; EFKCALL;
   EFK_Manager_SetMatrix: procedure(Manager: Pointer; Handle: cint32; M: TEfkMatrix44Ptr); EFKCALL;
+  EFK_Manager_SetSpeed: procedure(Manager: Pointer; Handle: cint32; Speed: cfloat); EFKCALL;
 
 // ----- Renderer -----
 
@@ -86,6 +87,7 @@ begin;
   EFK_Manager_StopEffect := GetProcedureAddress(Lib, 'EFK_Manager_StopEffect');
   EFK_Manager_Exists := GetProcedureAddress(Lib, 'EFK_Manager_Exists');
   EFK_Manager_SetMatrix := GetProcedureAddress(Lib, 'EFK_Manager_SetMatrix');
+  EFK_Manager_SetSpeed := GetProcedureAddress(Lib, 'EFK_Manager_SetSpeed');
 
   EFK_Renderer_Create := GetProcedureAddress(Lib, 'EFK_Renderer_Create');
   EFK_Renderer_Destroy := GetProcedureAddress(Lib, 'EFK_Renderer_Destroy');

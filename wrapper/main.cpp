@@ -274,6 +274,10 @@ __dllexport void __cdecl EFK_Manager_SetMatrix(Manager* manager, Handle handle, 
 	manager->SetMatrix(handle, m43);
 }
 
+__dllexport void __cdecl EFK_Manager_SetSpeed(Manager* manager, Handle handle, float speed) {
+	return manager->SetSpeed(handle, speed);
+}
+
 // ----- Renderer -----
 
 __dllexport Renderer* __cdecl EFK_Renderer_Create(int squareMaxCount, OpenGLDeviceType deviceType, bool isExtensionsEnabled) {

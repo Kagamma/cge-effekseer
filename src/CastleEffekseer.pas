@@ -60,6 +60,7 @@ type
     EfkEffect: Pointer;
     EfkHandle: Integer;
     FSecondsPassed: Single;
+    FTimePlayingSpeed: Single;
     { If true, repeat the emitter, by creating a new one to replace the "dead" one }
     FLoop: Boolean;
     { True if the emitter (handle) exists in manager }
@@ -69,6 +70,7 @@ type
     { Create Effekseer's global Manager and Renderer }
     procedure GLContextOpen;
     procedure InternalRefreshEffect;
+    procedure SetPlayingSpeed(V: Single);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -80,6 +82,7 @@ type
     { If true, and Loop is false, remove this scene when emitter is "dead" }
     property ReleaseWhenDone: Boolean read FReleaseWhenDone write FReleaseWhenDone;
   published
+    property TimePlayingSpeed: Single read FTimePlayingSpeed write SetPlayingSpeed default 1.0;
     { URL of an effekseer file. This will call LoadEffect to load particle effect }
     property URL: String read FURL write LoadEffect;
     { URL of an effekseer file. This will call LoadEffect to load particle effect }
@@ -306,8 +309,16 @@ begin
     end;
     M := Self.WorldTransform;
     Self.EfkHandle := EFK_Manager_Play(EfkManager, Self.EfkEffect, @M.Data[3,0], 0);
+    EFK_Manager_SetSpeed(EfkManager, Self.EfkHandle, Self.TimePlayingSpeed);
     Self.FIsNeedRefresh := False;
   end;
+end;
+
+procedure TCastleEffekseer.SetPlayingSpeed(V: Single);
+begin
+  Self.FTimePlayingSpeed := V;
+  if Self.FIsExistsInManager and (EfkManager <> nil) then
+    EFK_Manager_SetSpeed(EfkManager, Self.EfkHandle, Self.TimePlayingSpeed);
 end;
 
 constructor TCastleEffekseer.Create(AOwner: TComponent);
@@ -373,6 +384,7 @@ begin
     begin
       M := Self.WorldTransform;
       Self.EfkHandle := EFK_Manager_Play(EfkManager, Self.EfkEffect, @M.Data[3,0], 0);
+      EFK_Manager_SetSpeed(EfkManager, Self.EfkHandle, Self.TimePlayingSpeed);
       Self.FIsExistsInManager := True;
     end;
 
