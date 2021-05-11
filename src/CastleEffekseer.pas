@@ -397,8 +397,8 @@ begin
   if Self.FIsExistsInManager then
   begin
     EFK_Manager_SetMatrix(EfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transform^.Data));
-    // Since Effekseer has it's own culling, and there's a lack of information on which emmiter is
-    // visible, these statistics are not accurate when represent TCastleEffekseer
+    // Since Effekseer has it's own culling (we do not support it yet), and there's a lack of information
+    // on which handle is visible, these statistics are not accurate when represent TCastleEffekseer
     Inc(Params.Statistics.ScenesVisible);
     Inc(Params.Statistics.ShapesVisible);
     Inc(Params.Statistics.ScenesRendered);
