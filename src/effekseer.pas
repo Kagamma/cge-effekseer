@@ -2,11 +2,12 @@ unit effekseer;
 
 {$macro on}
 {$mode delphi}
-{$ifdef windows}
-  {$define EFKCALL:=cdecl}
+{$define EFKCALL:=cdecl}
+{$if defined(windows)}
   {$define EFKLIB:='libeffekseer.dll'}
-{$else}
-  {$define EFKCALL:=cdecl}
+{$elseif defined(darwin)}
+  {$define EFKLIB:='libeffekseer.dylib'}
+{$elsese}
   {$define EFKLIB:='libeffekseer.so'}
 {$endif}
 
