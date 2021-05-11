@@ -220,6 +220,8 @@ __dllexport void __cdecl EFK_Manager_SetDefaultRenders(Manager* manager, Rendere
 	manager->SetRingRenderer(renderer->CreateRingRenderer());
 	manager->SetTrackRenderer(renderer->CreateTrackRenderer());
 	manager->SetModelRenderer(renderer->CreateModelRenderer());
+	// TODO: Still doesnt understand much about this
+	manager->CreateCullingWorld(1000.0f, 1000.0f, 1000.0f, 1);
 }
 
 __dllexport void __cdecl EFK_Manager_SetDefaultLoaders(Manager* manager, Renderer* renderer) {
@@ -297,6 +299,7 @@ __dllexport void __cdecl EFK_Renderer_SetProjectionMatrix(Renderer* renderer, fl
 
 __dllexport void __cdecl EFK_Renderer_Render(Renderer* renderer, Manager* manager) {
 	renderer->BeginRendering();
+	manager->CalcCulling(renderer->GetCameraProjectionMatrix(), true);
 	manager->Draw();
 	renderer->EndRendering();
 }
