@@ -34,11 +34,20 @@ uses
   CastleImages;
 
 type
-  TEfkEffectCacheBase = TDictionary<String, Pointer>;
+  TEfkEffectRef = record
+    RefCount: LongWord;
+    Effect: Pointer;
+  end;
+  PEfkEffectRef = ^TEfkEffectRef;
+
+  TEfkEffectCacheBase = TDictionary<String, PEfkEffectRef>;
 
   TEfkEffectCache = class(TEfkEffectCacheBase)
   public
     destructor Destroy; override;
+    // Safely clear the cache while cheking effect refcount
+    procedure ClearSafe;
+    // Clear the cache regarding the effects is being used or not
     procedure Clear; override;
   end;
 
@@ -88,6 +97,8 @@ var
   EfkMobileRenderBackend: TEfkOpenGLDeviceType = edtOpenGLES2;
   { Use CGE's own image loader. If set to false then it will fallback to use stb as loader }
   EfkUseCGEImageLoader: Boolean = True;
+  // Catch effect
+  EfkEffectCache: TEfkEffectCache;
 
 implementation
 
@@ -95,10 +106,8 @@ var
   EfkManager: Pointer = nil;
   EfkRenderer: Pointer;
   IsManagerUpdated: Boolean = False;
-  CurrentOpenGLContext: Integer;
-  EffectCache: TEfkEffectCache;
 
-{ Called when OpenGL context is closed }
+{ Call when OpenGL context is closed }
 procedure FreeEfkContext;
 begin
   if EfkManager <> nil then
@@ -137,8 +146,6 @@ end;
 
 { Provide image loader function for Effekseer }
 procedure LoaderLoadImageFromFile(FileName: PWideChar; var Image: TCastleImage; var Data: Pointer; var Width, Height, Bpp: LongWord); cdecl;
-var
-  S: String;
 begin
   try
     Image := LoadImage(FileName);
@@ -150,7 +157,7 @@ begin
     // We ignore exception, and return null instead
     on E: Exception do
     begin
-      WritelnLog('Error', 'LoadImageFromFile: ' + E.Message + ' while loading ' + S);
+      WritelnLog('Error', 'LoadImageFromFile: ' + E.Message + ' while loading ' + FileName);
       Image := nil;
       Data := nil;
     end;
@@ -167,18 +174,39 @@ end;
 
 destructor TEfkEffectCache.Destroy;
 begin
-  Self.Clear;
   inherited;
+end;
+
+procedure TEfkEffectCache.ClearSafe;
+var
+  Key: String;
+  I: Integer;
+  EffectRef: PEfkEffectRef;
+begin
+  for I := Self.Count - 1 downto 0 do
+  begin
+    Key := Self.Keys.ToArray[I];
+    EffectRef := Self[Key];
+    if EffectRef^.RefCount <= 0 then
+    begin
+      EFK_Effect_Destroy(EffectRef^.Effect);
+      Dispose(EffectRef);
+      Self.Remove(Key);
+    end;
+  end;
 end;
 
 procedure TEfkEffectCache.Clear;
 var
   Key: String;
+  EffectRef: PEfkEffectRef;
 begin
-  // TODO: Need to check if current effect is in use or not for safety
-  // For now we can only call this before & after the use of effects
   for Key in Self.Keys do
-    EFK_Effect_Destroy(Self[Key]);
+  begin
+    EffectRef := Self[Key];
+    EFK_Effect_Destroy(EffectRef^.Effect);
+    Dispose(EffectRef);
+  end;
   inherited;
 end;
 
@@ -186,7 +214,6 @@ end;
 
 procedure TCastleEffekseer.GLContextOpen;
 var
-  V: Integer;
   RenderBackend: TEfkOpenGLDeviceType;
   RenderBackendName: String;
 begin
@@ -226,6 +253,8 @@ var
   I: Integer;
   Path: String;
   MS: TMemoryStream;
+  EffectRef: PEfkEffectRef;
+  Key: String;
 begin
   if EfkManager <> nil then
   begin
@@ -233,22 +262,38 @@ begin
       P[I] := #0;
     if EFK_Manager_Exists(EfkManager, Self.EfkHandle) then
       EFK_Manager_StopEffect(EfkManager, Self.EfkHandle);
+    // Take care of old effect
+    if Self.EfkEffect <> nil then
+      for Key in EfkEffectCache.Keys do
+      begin
+        EffectRef := EfkEffectCache[Key];
+        if EffectRef^.Effect = Self.EfkEffect then
+        begin
+          Dec(EffectRef^.RefCount);
+          Break;
+        end;
+      end;
     // Extract material path from file path, assuming textures and materials are in
     // the same place as .efk file
     Path := ExtractURIPath(Self.FURL);
     StringToWideChar(Path, P, Length(Path) + 1);
     if not CastleDesignMode then
     begin
-      if not EffectCache.ContainsKey(Self.FURL) then
+      if not EfkEffectCache.ContainsKey(Self.FURL) then
       begin
         // We use Download to create a TMemoryStream, then pass the pointer to EFK loader
         MS := Download(Self.FURL, [soForceMemoryStream]) as TMemoryStream;
         Self.EfkEffect := EFK_Effect_CreateWithMemory(EfkManager, MS.Memory, MS.Size, P);
         FreeAndNil(MS);
-        EffectCache.Add(Self.FURL, Self.EfkEffect);
+        New(EffectRef);
+        EffectRef^.RefCount := 1;
+        EffectRef^.Effect := Self.EfkEffect;
+        EfkEffectCache.Add(Self.FURL, EffectRef);
       end else
       begin
-        Self.EfkEffect := EffectCache[Self.FURL];
+        EffectRef := EfkEffectCache[Self.FURL];
+        Inc(EffectRef^.RefCount);
+        Self.EfkEffect := EffectRef^.Effect;
       end;
     end else
     // We dont cache effect in design mode
@@ -285,13 +330,23 @@ begin
 end;
 
 procedure TCastleEffekseer.GLContextClose;
+var
+  EffectRef: PEfkEffectRef;
 begin
   // We dont cache effect in design mode, so we free it here
-  if CastleDesignMode and Self.FIsGLContextInitialized then
+  if Self.FIsGLContextInitialized then
   begin
     if Self.EfkEffect <> nil then
     begin
-      EFK_Effect_Destroy(Self.EfkEffect);
+      if CastleDesignMode then
+        EFK_Effect_Destroy(Self.EfkEffect)
+      else
+      // There're chances EfkEffectCache get freed first, which called Clear, render this useless
+      if EfkEffectCache <> nil then
+      begin
+        EffectRef := EfkEffectCache[Self.FURL];
+        Dec(EffectRef^.RefCount);
+      end;
     end;
   end;
   inherited;
@@ -387,9 +442,9 @@ initialization
   if not EFK_Load then
     raise Exception.Create('Cannot initialize Effekseer library!');
   RegisterSerializableComponent(TCastleEffekseer, 'Effekseer Emitter');
-  EffectCache := TEfkEffectCache.Create;
+  EfkEffectCache := TEfkEffectCache.Create;
 
 finalization
-  EffectCache.Free;
+  FreeAndNil(EfkEffectCache);
 
 end.
