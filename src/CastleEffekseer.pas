@@ -90,10 +90,8 @@ type
   end;
 
 var
-  { Maximum number of instances }
-  EfkMaximumNumberOfInstances: Integer = 8192;
-  { Maximum number of squares }
-  EfkMaximumNumberOfSquares: Integer = 8192;
+  { Maximum number of sprites }
+  EfkMaximumNumberOfSprites: Integer = 8192;
   { Set graphics backend for desktop platform }
   EfkDesktopRenderBackend: TEfkOpenGLDeviceType = edtOpenGL2;
   { Set graphics backend for mobile platform }
@@ -233,8 +231,8 @@ begin
     {$endif}
     WriteStr(RenderBackendName, RenderBackend);
     WritelnLog('Effekseer''s render backend: ' + RenderBackendName);
-    EfkManager := EFK_Manager_Create(EfkMaximumNumberOfInstances);
-    EfkRenderer := EFK_Renderer_Create(EfkMaximumNumberOfSquares, RenderBackend, True);
+    EfkManager := EFK_Manager_Create(EfkMaximumNumberOfSprites);
+    EfkRenderer := EFK_Renderer_Create(EfkMaximumNumberOfSprites, RenderBackend, True);
 
     EFK_Loader_RegisterLoadRoutine(@LoaderLoad);
     EFK_Loader_RegisterFreeRoutine(@LoaderFree);
