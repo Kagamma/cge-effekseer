@@ -29,8 +29,8 @@ This section is for people who want to build Effekseer dynamic library. I am not
 
 ###### Obtain Effekseer official runtime
 There are 2 ways to do it:
-- Download [Effekseer for Runtime](https://effekseer.github.io/en/download.html "Effekseer for Runtime") directly from website. This is what I did, and the following guidelines will be based on this method.
-- Clone it from https://github.com/effekseer/Effekseer. This contains both runtime and editor.
+- Download [Effekseer for Runtime 1.6](https://effekseer.github.io/en/download.html "Effekseer for Runtime") directly from website. This is what I did, and the following guidelines will be based on this method.
+- Clone branch `16x` from https://github.com/effekseer/Effekseer. This contains both runtime and editor.
 
 ###### Patch for MinGW (skip if you use Visual Studio or GCC)
 Replace all `posix_` usages in runtime source code with cross-platform alternative (there are 3 places where this is used).
