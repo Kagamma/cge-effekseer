@@ -1,9 +1,12 @@
 Effekseer integration for Castle Game Engine.
 
 ### Precompiled dynamic library
-For lazy people ;). This contains binaries for win32, win64 and android, built with -O3 optimization : 1.61a: https://drive.google.com/file/d/1v24qxD-VjmIi3Q3eScRoAu0GOv4M1nfI/view?usp=sharing
+For lazy people ;). This contains binaries for win32, win64 and android, built with -O3 optimization :
 
-```Old versions:
+1.61a: https://drive.google.com/file/d/1v24qxD-VjmIi3Q3eScRoAu0GOv4M1nfI/view?usp=sharing
+
+Old versions:
+```
 1.60: https://drive.google.com/file/d/1trF_9hx55ajKUVSv4X3AF3fQBZcGWj28/view?usp=sharing
 ```
 ### How to use
