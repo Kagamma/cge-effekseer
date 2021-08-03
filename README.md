@@ -1,8 +1,11 @@
 Effekseer integration for Castle Game Engine.
 
 ### Precompiled dynamic library
-For lazy people ;). This contains binaries for win32, win64 and android, built with -O3 optimization : https://drive.google.com/file/d/1trF_9hx55ajKUVSv4X3AF3fQBZcGWj28/view?usp=sharing
+For lazy people ;). This contains binaries for win32, win64 and android, built with -O3 optimization : 1.61a: https://drive.google.com/file/d/1v24qxD-VjmIi3Q3eScRoAu0GOv4M1nfI/view?usp=sharing
 
+```Old versions:
+1.60: https://drive.google.com/file/d/1trF_9hx55ajKUVSv4X3AF3fQBZcGWj28/view?usp=sharing
+```
 ### How to use
 
 Import `CastleEffekseer.pas`, `effekseer.pas` and corresponding binaries into your project.  Add `CastleEffekseer` unit in your code. The unit contains `TCastleEffekseer`, which is descendant of `TCastleSceneCore`, you can use it to load effects like how you normally load model with `TCastleScene`.
@@ -29,7 +32,7 @@ This section is for people who want to build Effekseer dynamic library. I am not
 
 ###### Obtain Effekseer official runtime
 There are 2 ways to do it:
-- Download [Effekseer for Runtime 1.6](https://effekseer.github.io/en/download.html "Effekseer for Runtime") directly from website. This is what I did, and the following guidelines will be based on this method.
+- Download [Effekseer for Runtime 1.61a](https://effekseer.github.io/en/download.html "Effekseer for Runtime") directly from website. This is what I did, and the following guidelines will be based on this method.
 - Clone branch `16x` from https://github.com/effekseer/Effekseer. This contains both runtime and editor.
 
 ###### Patch for MinGW (skip if you use Visual Studio or GCC)
