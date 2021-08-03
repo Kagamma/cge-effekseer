@@ -327,6 +327,7 @@ begin
   Self.EfkEffect := nil;
   Self.EfkHandle := -1;
   Self.FReleaseWhenDone := False;
+  Self.FTimePlayingSpeed := 1;
 end;
 
 destructor TCastleEffekseer.Destroy;
