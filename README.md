@@ -1,7 +1,7 @@
 Effekseer integration for Castle Game Engine.
 
 ### Precompiled dynamic library
-For lazy people ;). This contains binaries for win32, win64 and android, built with -O3 optimization :
+For lazy people ;). This contains binaries for windows (i386, x86_64), linux (x86_64) and android (armeabi-v7a, arm64-v8a), built with -O3 optimization :
 
 1.61a: https://drive.google.com/file/d/1v24qxD-VjmIi3Q3eScRoAu0GOv4M1nfI/view?usp=sharing
 
@@ -37,6 +37,7 @@ This section is for people who want to build Effekseer dynamic library. I am not
 There are 2 ways to do it:
 - Download [Effekseer for Runtime 1.61a](https://effekseer.github.io/en/download.html "Effekseer for Runtime") directly from website. This is what I did, and the following guidelines will be based on this method.
 - Clone branch `16x` from https://github.com/effekseer/Effekseer. This contains both runtime and editor.
+Alternative, you can clone from https://github.com/castle-engine/Effekseer/, which already include `wrapper` from this repo and necessary changes in CMakeLists.txt.
 
 ###### Patch for MinGW (skip if you use Visual Studio or GCC)
 Replace all `posix_` usages in runtime source code with cross-platform alternative (there are 3 places where this is used).
