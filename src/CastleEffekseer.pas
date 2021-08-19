@@ -224,25 +224,29 @@ begin
 
   if EfkManager = nil then
   begin
-    {$if defined(ANDROID) or defined(IOS)}
-      RenderBackend := EfkMobileRenderBackend;
-    {$else}
-      RenderBackend := EfkDesktopRenderBackend;
-    {$endif}
-    WriteStr(RenderBackendName, RenderBackend);
-    WritelnLog('Effekseer''s render backend: ' + RenderBackendName);
-    EfkManager := EFK_Manager_Create(EfkMaximumNumberOfSprites);
-    EfkRenderer := EFK_Renderer_Create(EfkMaximumNumberOfSprites, RenderBackend, True);
+    if EFK_Load then
+    begin
+      {$if defined(ANDROID) or defined(IOS)}
+        RenderBackend := EfkMobileRenderBackend;
+      {$else}
+        RenderBackend := EfkDesktopRenderBackend;
+      {$endif}
+      WriteStr(RenderBackendName, RenderBackend);
+      WritelnLog('Effekseer''s render backend: ' + RenderBackendName);
+      EfkManager := EFK_Manager_Create(EfkMaximumNumberOfSprites);
+      EfkRenderer := EFK_Renderer_Create(EfkMaximumNumberOfSprites, RenderBackend, True);
 
-    EFK_Loader_RegisterLoadRoutine(@LoaderLoad);
-    EFK_Loader_RegisterFreeRoutine(@LoaderFree);
-    if EfkUseCGEImageLoader then
-      EFK_Loader_RegisterLoadImageFromFileRoutine(@LoaderLoadImageFromFile);
+      EFK_Loader_RegisterLoadRoutine(@LoaderLoad);
+      EFK_Loader_RegisterFreeRoutine(@LoaderFree);
+      if EfkUseCGEImageLoader then
+        EFK_Loader_RegisterLoadImageFromFileRoutine(@LoaderLoadImageFromFile);
 
-    EFK_Manager_SetDefaultRenders(EfkManager, EfkRenderer);
-    EFK_Manager_SetDefaultLoaders(EfkManager, EfkRenderer);
+      EFK_Manager_SetDefaultRenders(EfkManager, EfkRenderer);
+      EFK_Manager_SetDefaultLoaders(EfkManager, EfkRenderer);
 
-    ApplicationProperties.OnGLContextClose.Add(@FreeEfkContext);
+      ApplicationProperties.OnGLContextClose.Add(@FreeEfkContext);
+    end else
+      WritelnWarning('Effekseer', 'Could not load the Effekseer library.  Make sure you placed the relevant libraries (libeffekseer.dll, libeffekseer.so...) inside the project. On Unix, also make sure you run with LD_LIBRARY_PATH pointing to these libraries.');
   end;
 
   Self.FIsGLContextInitialized := True;
@@ -455,8 +459,6 @@ begin
 end;
 
 initialization
-  if not EFK_Load then
-    raise Exception.Create('Cannot initialize Effekseer library!');
   RegisterSerializableComponent(TCastleEffekseer, 'Effekseer Emitter');
   EfkEffectCache := TEfkEffectCache.Create;
 

@@ -67,10 +67,14 @@ function EFK_Load: Boolean;
 
 implementation
 
-function EFK_Load: Boolean;
 var
   Lib: TLibHandle = dynlibs.NilHandle;
+
+function EFK_Load: Boolean;
 begin;
+  // library already loaded, subsequent calls to EFK_Load do nothing
+  if Lib <> dynlibs.NilHandle then Exit(True);
+
   Lib := LoadLibrary(EFKLIB);
   if Lib = dynlibs.NilHandle then Exit(False);
 
