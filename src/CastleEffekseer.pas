@@ -253,19 +253,13 @@ begin
 end;
 
 procedure TCastleEffekseer.InternalRefreshEffect;
-var
-  P: array[0..2047] of WideChar;
-  I: Integer;
-  Path: String;
-  MS: TMemoryStream;
-  EffectRef: PEfkEffectRef;
-  Key: String;
-  M: TMatrix4;
-begin
-  if EfkManager <> nil then
+
+  // Take care to free and cleanup after the old effect
+  procedure Unload;
+  var
+    Key: String;
+    EffectRef: PEfkEffectRef;
   begin
-    for I := 0 to High(P) do
-      P[I] := #0;
     if EFK_Manager_Exists(EfkManager, Self.EfkHandle) then
       EFK_Manager_StopEffect(EfkManager, Self.EfkHandle);
     // Take care of old effect
@@ -279,25 +273,40 @@ begin
           Break;
         end;
       end;
+  end;
+
+  // Load new effect from non-empty AURL
+  procedure Load(const AURL: String);
+  var
+    P: array[0..2047] of WideChar;
+    I: Integer;
+    Path: String;
+    MS: TMemoryStream;
+    EffectRef: PEfkEffectRef;
+    M: TMatrix4;
+  begin
+    for I := 0 to High(P) do
+      P[I] := #0;
+
     // Extract material path from file path, assuming textures and materials are in
     // the same place as .efk file
-    Path := ExtractURIPath(Self.FURL);
+    Path := ExtractURIPath(AURL);
     StringToWideChar(Path, P, Length(Path) + 1);
     if not CastleDesignMode then
     begin
-      if not EfkEffectCache.ContainsKey(Self.FURL) then
+      if not EfkEffectCache.ContainsKey(AURL) then
       begin
         // We use Download to create a TMemoryStream, then pass the pointer to EFK loader
-        MS := Download(Self.FURL, [soForceMemoryStream]) as TMemoryStream;
+        MS := Download(AURL, [soForceMemoryStream]) as TMemoryStream;
         Self.EfkEffect := EFK_Effect_CreateWithMemory(EfkManager, MS.Memory, MS.Size, P);
         FreeAndNil(MS);
         New(EffectRef);
         EffectRef^.RefCount := 1;
         EffectRef^.Effect := Self.EfkEffect;
-        EfkEffectCache.Add(Self.FURL, EffectRef);
+        EfkEffectCache.Add(AURL, EffectRef);
       end else
       begin
-        EffectRef := EfkEffectCache[Self.FURL];
+        EffectRef := EfkEffectCache[AURL];
         Inc(EffectRef^.RefCount);
         Self.EfkEffect := EffectRef^.Effect;
       end;
@@ -305,13 +314,21 @@ begin
     // We dont cache effect in design mode
     begin
       // We use Download to create a TMemoryStream, then pass the pointer to EFK loader
-      MS := Download(Self.FURL, [soForceMemoryStream]) as TMemoryStream;
+      MS := Download(AURL, [soForceMemoryStream]) as TMemoryStream;
       Self.EfkEffect := EFK_Effect_CreateWithMemory(EfkManager, MS.Memory, MS.Size, P);
       FreeAndNil(MS);
     end;
     M := Self.WorldTransform;
     Self.EfkHandle := EFK_Manager_Play(EfkManager, Self.EfkEffect, @M.Data[3,0], 0);
     EFK_Manager_SetSpeed(EfkManager, Self.EfkHandle, Self.TimePlayingSpeed);
+  end;
+
+begin
+  if EfkManager <> nil then
+  begin
+    Unload;
+    if Self.FURL <> '' then
+      Load(Self.FURL);
     Self.FIsNeedRefresh := False;
   end;
 end;
