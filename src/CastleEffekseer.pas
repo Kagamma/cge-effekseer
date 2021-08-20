@@ -165,10 +165,12 @@ begin
   end;
 end;
 
-{ Free FP's Stream object }
-procedure LoaderFree(MS: TMemoryStream); cdecl;
+{ Free an object.
+  The argument is either TCastleImage (when it is a texture loaded by LoadImageFromFile)
+  or a TMemoryStream (when it is a stream loaded by LoaderLoad). }
+procedure LoaderFree(O: TObject); cdecl;
 begin
-  FreeAndNil(MS);
+  FreeAndNil(O);
 end;
 
 { ----- TEfkEffectCache ----- }

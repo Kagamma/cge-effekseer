@@ -120,10 +120,13 @@ public:
 		//
 		if (loader_loadImageFromFile != nullptr) {
 			loader_loadImageFromFile(path, &objPas, &pixels, &width, &height, &bpp);
+			// in case texture failed to load, Pascal LoaderLoadImageFromFile sets both objPas and pixels to nullptr
+			if (pixels == nullptr) return nullptr;
 		} else {
 			loader_load(path, &objPas, &data, &size);
-			pixels = (uint8_t*)stbi_load_from_memory((stbi_uc const*)data, size, &width, &height, &bpp, 0);
+			// in case stream failed to load, Pascal LoaderLoad sets both objPas and data to nullptr
 			if (data == nullptr) return nullptr;
+			pixels = (uint8_t*)stbi_load_from_memory((stbi_uc const*)data, size, &width, &height, &bpp, 0);
 		}
 
 		textureData.resize(width * height * 4);
