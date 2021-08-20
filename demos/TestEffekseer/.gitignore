@@ -1,0 +1,12 @@
+# Windows executable
+*.exe
+# Unix executable
+TestEffekseer
+
+# libraries
+*.dll
+*.so
+
+# CGE compilation output
+castle-engine-output
+*.res
