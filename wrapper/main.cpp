@@ -124,7 +124,7 @@ public:
                         if (pixels == nullptr) return nullptr;
 		} else {
 			loader_load(path, &objPas, &data, &size);
-                        // in case stream failed to load, Pascal LoaderLoad sets both objPas and data to nullptr
+			// in case stream failed to load, Pascal LoaderLoad sets both objPas and data to nullptr
 			if (data == nullptr) return nullptr;
 			pixels = (uint8_t*)stbi_load_from_memory((stbi_uc const*)data, size, &width, &height, &bpp, 0);
 		}
