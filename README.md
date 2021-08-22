@@ -33,24 +33,10 @@ It's also integrate in the editor. You can put `CastleEffekseer` in editor_units
 ### Generate dynamic library guidelines
 This section is for people who want to build Effekseer dynamic library. I am not really good at cmake, and this is written with Windows and cmake-gui in mind.
 
-###### Obtain Effekseer official runtime
-There are 2 ways to do it:
-- Download [Effekseer for Runtime 1.61a](https://effekseer.github.io/en/download.html "Effekseer for Runtime") directly from website. This is what I did, and the following guidelines will be based on this method.
-- Clone branch `16x` from https://github.com/effekseer/Effekseer. This contains both runtime and editor.
-
-Alternative, you can clone from https://github.com/castle-engine/Effekseer/, which already include `wrapper` from this repo and necessary changes in CMakeLists.txt.
-
-###### Patch for MinGW (skip if you use Visual Studio or GCC)
-Replace all `posix_` usages in runtime source code with cross-platform alternative (there are 3 places where this is used).
+###### Obtain Effekseer runtime
+- Clone our modified Effekseer runtime from https://github.com/castle-engine/Effekseer/
 
 ###### Generate makefiles
-You need to copy `wrapper` from this repo and put it in Effekseer runtime's root directory.
-Add these lines to Effekseer runtime's root CMakeLists.txt:
-
-    option(BUILD_WRAPPER "Build wrapper" ON)
-    if (BUILD_WRAPPER)
-        add_subdirectory(wrapper)
-    endif()
 Generate makefiles, remember to enable `BUILD_WRAPPER`, `BUILD_SHARED_LIBS`, `USE_OPENGL3` (for desktop), `USE_OPENGLES2` (for mobile platform). The rest of the flags can be disabled.
 Make sure to include necessary libraries in `CMAKE_CXX_STANDARD_LIBRARIES`, for example:
 - Windows: `-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -lopengl32 -lglu32 -lwinpthread`
