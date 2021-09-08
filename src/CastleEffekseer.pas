@@ -252,6 +252,7 @@ begin
   end;
 
   Self.FIsGLContextInitialized := True;
+  Self.FIsNeedRefresh := True;
 end;
 
 procedure TCastleEffekseer.InternalRefreshEffect;
