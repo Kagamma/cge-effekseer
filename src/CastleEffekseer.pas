@@ -29,7 +29,7 @@ interface
 uses
   Classes, SysUtils, Generics.Collections,
   Effekseer,
-  CastleVectors, CastleSceneCore, CastleApplicationProperties, CastleTransform, CastleComponentSerialize,
+  CastleVectors, CastleApplicationProperties, CastleTransform, CastleComponentSerialize,
   CastleBoxes, CastleUtils, CastleLog, CastleRenderContext, CastleGLShaders, CastleDownload, CastleURIUtils,
   CastleImages;
 
@@ -51,7 +51,7 @@ type
     procedure Clear; override;
   end;
 
-  TCastleEffekseer = class(TCastleSceneCore)
+  TCastleEffekseer = class(TCastleTransform)
   strict private
     FURL: String;
     FIsNeedRefresh: Boolean;
