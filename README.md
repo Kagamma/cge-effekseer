@@ -1,14 +1,8 @@
 Effekseer integration for Castle Game Engine.
 
 ### Precompiled dynamic library
-For lazy people ;). This contains binaries for windows (i386, x86_64), linux (x86_64) and android (armeabi-v7a, arm64-v8a), built with -O3 optimization :
+(See Releases section) For lazy people ;). This contains binaries for windows (i386, x86_64), linux (x86_64) and android (armeabi-v7a, arm64-v8a), built with -O3 optimization.
 
-1.61a: https://drive.google.com/file/d/1v24qxD-VjmIi3Q3eScRoAu0GOv4M1nfI/view?usp=sharing
-
-Old versions:
-```
-1.60: https://drive.google.com/file/d/1trF_9hx55ajKUVSv4X3AF3fQBZcGWj28/view?usp=sharing
-```
 ### How to use
 
 Import `CastleEffekseer.pas`, `effekseer.pas` and corresponding binaries into your project.  Add `CastleEffekseer` unit in your code. The unit contains `TCastleEffekseer`, which is descendant of `TCastleSceneCore`, you can use it to load effects like how you normally load model with `TCastleScene`.
