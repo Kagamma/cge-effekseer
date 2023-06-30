@@ -1,5 +1,5 @@
 {
-  Copyright (c) 2021-2021 Trung Le (Kagamma).
+  Copyright (c) 2021-2023 Kagamma.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,10 @@ interface
 uses
   Classes, SysUtils, Generics.Collections,
   Effekseer,
+  {$ifdef CASTLE_DESIGN_MODE}
+  PropEdits, CastlePropEdits, CastleDebugTransform, Forms, Controls, Graphics, Dialogs,
+  ButtonPanel, StdCtrls, ExtCtrls, CastleInternalExposeTransformsDialog,
+  {$endif}
   CastleVectors, CastleApplicationProperties, CastleTransform, CastleComponentSerialize,
   CastleBoxes, CastleUtils, CastleLog, CastleRenderContext, CastleGLShaders, CastleDownload, CastleURIUtils,
   CastleImages;
@@ -74,6 +78,9 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    {$ifdef CASTLE_DESIGN_MODE}
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+    {$endif}
     procedure GLContextClose; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure LocalRender(const Params: TRenderParams); override;
@@ -478,8 +485,23 @@ begin
   Self.RefreshEffect;
 end;
 
+{$ifdef CASTLE_DESIGN_MODE}
+function TCastleEffekseer.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'URL') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+{$endif}
+
 initialization
   RegisterSerializableComponent(TCastleEffekseer, 'Effekseer Emitter');
+  {$ifdef CASTLE_DESIGN_MODE}
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleEffekseer, 'URL',
+    TSceneURLPropertyEditor);
+  {$endif}
   EfkEffectCache := TEfkEffectCache.Create;
 
 finalization
