@@ -32,6 +32,7 @@ uses
   {$ifdef CASTLE_DESIGN_MODE}
   PropEdits, CastlePropEdits, CastleDebugTransform, Forms, Controls, Graphics, Dialogs,
   ButtonPanel, StdCtrls, ExtCtrls, CastleInternalExposeTransformsDialog,
+  CastleClassUtils,
   {$endif}
   CastleVectors, CastleApplicationProperties, CastleTransform, CastleComponentSerialize,
   CastleBoxes, CastleUtils, CastleLog, CastleRenderContext, CastleGLShaders, CastleDownload, CastleURIUtils,
@@ -240,7 +241,7 @@ begin
       {$else}
         RenderBackend := EfkDesktopRenderBackend;
       {$endif}
-      WriteStr(RenderBackendName, RenderBackend);
+      System.WriteStr(RenderBackendName, RenderBackend);
       WritelnLog('Effekseer''s render backend: ' + RenderBackendName);
       EfkManager := EFK_Manager_Create(EfkMaximumNumberOfSprites);
       EfkRenderer := EFK_Renderer_Create(EfkMaximumNumberOfSprites, RenderBackend, True);
