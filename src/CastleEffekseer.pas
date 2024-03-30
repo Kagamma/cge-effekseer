@@ -76,7 +76,6 @@ type
     FIsExistsInManager: Boolean;
     { If true, free the scene once the emitter is done emitting }
     FReleaseWhenDone: Boolean;
-    { Create Effekseer's global Renderer }
     procedure GLContextOpen;
     procedure InternalRefreshEffect;
     procedure SetPlayingSpeed(V: Single);
