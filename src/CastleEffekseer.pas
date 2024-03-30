@@ -66,13 +66,17 @@ type
     EfkHandle: Integer;
     FSecondsPassed: Single;
     FTimePlayingSpeed: Single;
+    { Per-scene effect manager (TODO: Not really great performance wise, maybe we should create a custom viewport to manage it instead?) }
+    FEfkManager: Pointer;
+    { Per-scene renderer (TODO: Not really great performance wise, maybe we should create a custom viewport to manage it instead?) }
+    FEfkRenderer: Pointer;
     { If true, repeat the emitter, by creating a new one to replace the "dead" one }
     FLoop: Boolean;
     { True if the emitter (handle) exists in manager }
     FIsExistsInManager: Boolean;
     { If true, free the scene once the emitter is done emitting }
     FReleaseWhenDone: Boolean;
-    { Create Effekseer's global Manager and Renderer }
+    { Create Effekseer's global Renderer }
     procedure GLContextOpen;
     procedure InternalRefreshEffect;
     procedure SetPlayingSpeed(V: Single);
@@ -112,21 +116,7 @@ var
 implementation
 
 var
-  EfkManager: Pointer = nil;
-  EfkRenderer: Pointer;
-  IsManagerUpdated: Boolean = False;
-
-{ Call when OpenGL context is closed }
-procedure FreeEfkContext;
-begin
-  if EfkManager <> nil then
-  begin
-    EFK_Manager_Destroy(EfkManager);
-    EFK_Renderer_Destroy(EfkRenderer);
-    EfkManager := nil;
-    EfkRenderer := nil;
-  end;
-end;
+  IsRoutinesRegistered: Boolean = False;
 
 { Provide loader function for Effekseer }
 procedure LoaderLoad(FileName: PWideChar; var MS: TMemoryStream; var Data: Pointer; var Size: LongWord); cdecl;
@@ -232,9 +222,11 @@ begin
   if not ApplicationProperties.IsGLContextOpen then Exit;
   if Self.FIsGLContextInitialized then Exit;
 
-  if EfkManager = nil then
+  if EFK_Load then
   begin
-    if EFK_Load then
+    if Self.FEfkManager = nil then
+      Self.FEfkManager := EFK_Manager_Create(EfkMaximumNumberOfSprites);
+    if Self.FEfkRenderer = nil then
     begin
       {$if defined(ANDROID) or defined(IOS)}
         RenderBackend := EfkMobileRenderBackend;
@@ -243,21 +235,22 @@ begin
       {$endif}
       System.WriteStr(RenderBackendName, RenderBackend);
       WritelnLog('Effekseer''s render backend: ' + RenderBackendName);
-      EfkManager := EFK_Manager_Create(EfkMaximumNumberOfSprites);
-      EfkRenderer := EFK_Renderer_Create(EfkMaximumNumberOfSprites, RenderBackend, True);
+      Self.FEfkRenderer := EFK_Renderer_Create(EfkMaximumNumberOfSprites, RenderBackend, True);
 
-      EFK_Loader_RegisterLoadRoutine(@LoaderLoad);
-      EFK_Loader_RegisterFreeRoutine(@LoaderFree);
-      if EfkUseCGEImageLoader then
-        EFK_Loader_RegisterLoadImageFromFileRoutine(@LoaderLoadImageFromFile);
+      if not IsRoutinesRegistered then
+      begin
+        EFK_Loader_RegisterLoadRoutine(@LoaderLoad);
+        EFK_Loader_RegisterFreeRoutine(@LoaderFree);
+        if EfkUseCGEImageLoader then
+          EFK_Loader_RegisterLoadImageFromFileRoutine(@LoaderLoadImageFromFile);
+        IsRoutinesRegistered := True;
+      end;
 
-      EFK_Manager_SetDefaultRenders(EfkManager, EfkRenderer);
-      EFK_Manager_SetDefaultLoaders(EfkManager, EfkRenderer);
-
-      ApplicationProperties.OnGLContextClose.Add(@FreeEfkContext);
-    end else
-      WritelnWarning('Effekseer', 'Could not load the Effekseer library.  Make sure you placed the relevant libraries (libeffekseer.dll, libeffekseer.so...) inside the project. On Unix, also make sure you run with LD_LIBRARY_PATH pointing to these libraries.');
-  end;
+      EFK_Manager_SetDefaultRenders(Self.FEfkManager, Self.FEfkRenderer);
+      EFK_Manager_SetDefaultLoaders(Self.FEfkManager, Self.FEfkRenderer);
+    end;
+  end else
+    WritelnWarning('Effekseer', 'Could not load the Effekseer library.  Make sure you placed the relevant libraries (libeffekseer.dll, libeffekseer.so...) inside the project. On Unix, also make sure you run with LD_LIBRARY_PATH pointing to these libraries.');
 
   Self.FIsGLContextInitialized := True;
   Self.FIsNeedRefresh := True;
@@ -271,8 +264,8 @@ procedure TCastleEffekseer.InternalRefreshEffect;
     Key: String;
     EffectRef: PEfkEffectRef;
   begin
-    if EFK_Manager_Exists(EfkManager, Self.EfkHandle) then
-      EFK_Manager_StopEffect(EfkManager, Self.EfkHandle);
+    if EFK_Manager_Exists(Self.FEfkManager, Self.EfkHandle) then
+      EFK_Manager_StopEffect(Self.FEfkManager, Self.EfkHandle);
     // Take care of old effect
     if Self.EfkEffect <> nil then
       for Key in EfkEffectCache.Keys do
@@ -309,7 +302,7 @@ procedure TCastleEffekseer.InternalRefreshEffect;
       begin
         // We use Download to create a TMemoryStream, then pass the pointer to EFK loader
         MS := Download(AURL, [soForceMemoryStream]) as TMemoryStream;
-        Self.EfkEffect := EFK_Effect_CreateWithMemory(EfkManager, MS.Memory, MS.Size, P);
+        Self.EfkEffect := EFK_Effect_CreateWithMemory(Self.FEfkManager, MS.Memory, MS.Size, P);
         FreeAndNil(MS);
         New(EffectRef);
         EffectRef^.RefCount := 1;
@@ -326,16 +319,16 @@ procedure TCastleEffekseer.InternalRefreshEffect;
     begin
       // We use Download to create a TMemoryStream, then pass the pointer to EFK loader
       MS := Download(AURL, [soForceMemoryStream]) as TMemoryStream;
-      Self.EfkEffect := EFK_Effect_CreateWithMemory(EfkManager, MS.Memory, MS.Size, P);
+      Self.EfkEffect := EFK_Effect_CreateWithMemory(Self.FEfkManager, MS.Memory, MS.Size, P);
       FreeAndNil(MS);
     end;
     M := Self.WorldTransform;
-    Self.EfkHandle := EFK_Manager_Play(EfkManager, Self.EfkEffect, @M.Data[3,0], 0);
-    EFK_Manager_SetSpeed(EfkManager, Self.EfkHandle, Self.TimePlayingSpeed);
+    Self.EfkHandle := EFK_Manager_Play(Self.FEfkManager, Self.EfkEffect, @M.Data[3,0], 0);
+    EFK_Manager_SetSpeed(Self.FEfkManager, Self.EfkHandle, Self.TimePlayingSpeed);
   end;
 
 begin
-  if EfkManager <> nil then
+  if Self.FEfkManager <> nil then
   begin
     Unload;
     if Self.FURL <> '' then
@@ -347,8 +340,8 @@ end;
 procedure TCastleEffekseer.SetPlayingSpeed(V: Single);
 begin
   Self.FTimePlayingSpeed := V;
-  if Self.FIsExistsInManager and (EfkManager <> nil) then
-    EFK_Manager_SetSpeed(EfkManager, Self.EfkHandle, Self.TimePlayingSpeed);
+  if Self.FIsExistsInManager and (Self.FEfkManager <> nil) then
+    EFK_Manager_SetSpeed(Self.FEfkManager, Self.EfkHandle, Self.TimePlayingSpeed);
 end;
 
 constructor TCastleEffekseer.Create(AOwner: TComponent);
@@ -364,11 +357,12 @@ end;
 
 destructor TCastleEffekseer.Destroy;
 begin
-  // EfkManager may be destroyed when OpenGL context closes first
-  if (Self.EfkEffect <> nil) and (EfkManager <> nil) then
+  // Self.FEfkManager may be destroyed when OpenGL context closes first
+  if (Self.EfkEffect <> nil) and (Self.FEfkManager <> nil) then
   begin
-    if EFK_Manager_Exists(EfkManager, Self.EfkHandle) then
-      EFK_Manager_StopEffect(EfkManager, Self.EfkHandle);
+    if EFK_Manager_Exists(Self.FEfkManager, Self.EfkHandle) then
+      EFK_Manager_StopEffect(Self.FEfkManager, Self.EfkHandle);
+    EFK_Manager_Destroy(Self.FEfkManager);
   end;
   inherited;
 end;
@@ -392,6 +386,11 @@ begin
         Dec(EffectRef^.RefCount);
       end;
     end;
+    if Self.FEfkRenderer <> nil then
+    begin
+      EFK_Renderer_Destroy(Self.FEfkRenderer);
+      Self.FEfkRenderer := nil;
+    end;
   end;
   inherited;
 end;
@@ -410,16 +409,15 @@ begin
   if (Self.FIsGLContextInitialized) and (Self.EfkEffect <> nil) then
   begin
     // Emitter is considered "not exists" only when all of it's nodes is dead
-    Self.FIsExistsInManager := EFK_Manager_Exists(EfkManager, Self.EfkHandle);
+    Self.FIsExistsInManager := EFK_Manager_Exists(Self.FEfkManager, Self.EfkHandle);
     if Self.FLoop and (not Self.FIsExistsInManager) then
     begin
       M := Self.WorldTransform;
-      Self.EfkHandle := EFK_Manager_Play(EfkManager, Self.EfkEffect, @M.Data[3,0], 0);
-      EFK_Manager_SetSpeed(EfkManager, Self.EfkHandle, Self.TimePlayingSpeed);
+      Self.EfkHandle := EFK_Manager_Play(Self.FEfkManager, Self.EfkEffect, @M.Data[3,0], 0);
+      EFK_Manager_SetSpeed(Self.FEfkManager, Self.EfkHandle, Self.TimePlayingSpeed);
       Self.FIsExistsInManager := True;
     end;
 
-    IsManagerUpdated := True;
     Self.FSecondsPassed := SecondsPassed;
 
     // Yes we dont want this happen while in design mode...
@@ -444,29 +442,24 @@ begin
     Exit;
   if Self.FIsExistsInManager then
   begin
-    EFK_Manager_SetMatrix(EfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transform^.Data));
+    EFK_Manager_SetMatrix(Self.FEfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transform^.Data));
     // Since Effekseer has it's own culling, and there's a lack of information on which handle is visible,
     // these statistics are not accurate when represent TCastleEffekseer
     Inc(Params.Statistics.ScenesVisible);
     Inc(Params.Statistics.ScenesRendered);
   end;
-  if not IsManagerUpdated then
-    Exit;
-
   PreviousProgram := RenderContext.CurrentProgram;
 
-  EFK_Manager_Update(EfkManager, FSecondsPassed / (1 / 60));
-  EFK_Manager_SetMatrix(EfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transform^.Data));
-  EFK_Renderer_SetViewMatrix(EfkRenderer, TEfkMatrix44Ptr(@Params.RenderingCamera.Matrix.Data));
-  EFK_Renderer_SetProjectionMatrix(EfkRenderer, TEfkMatrix44Ptr(@RenderContext.ProjectionMatrix.Data));
-  EFK_Renderer_Render(EfkRenderer, EfkManager);
+  EFK_Manager_Update(Self.FEfkManager, FSecondsPassed / (1 / 60));
+  EFK_Manager_SetMatrix(Self.FEfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transform^.Data));
+  EFK_Renderer_SetViewMatrix(Self.FEfkRenderer, TEfkMatrix44Ptr(@Params.RenderingCamera.Matrix.Data));
+  EFK_Renderer_SetProjectionMatrix(Self.FEfkRenderer, TEfkMatrix44Ptr(@RenderContext.ProjectionMatrix.Data));
+  EFK_Renderer_Render(Self.FEfkRenderer, Self.FEfkManager);
 
   // DrawCalls is considered as "ShapesRendered" at the moment
-  DrawCalls := EFK_Renderer_GetDrawCallCount(EfkRenderer);
+  DrawCalls := EFK_Renderer_GetDrawCallCount(Self.FEfkRenderer);
   Inc(Params.Statistics.ShapesVisible, DrawCalls);
   Inc(Params.Statistics.ShapesRendered, DrawCalls);
-
-  IsManagerUpdated := False;
 
   if PreviousProgram <> nil then
   begin
