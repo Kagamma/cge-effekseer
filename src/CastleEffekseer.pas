@@ -441,7 +441,7 @@ begin
     Exit;
   if Self.FIsExistsInManager then
   begin
-    EFK_Manager_SetMatrix(Self.FEfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transform^.Data));
+    EFK_Manager_SetMatrix(Self.FEfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transformation^.Transform.Data));
     // Since Effekseer has it's own culling, and there's a lack of information on which handle is visible,
     // these statistics are not accurate when represent TCastleEffekseer
     Inc(Params.Statistics.ScenesVisible);
@@ -450,7 +450,7 @@ begin
   PreviousProgram := RenderContext.CurrentProgram;
 
   EFK_Manager_Update(Self.FEfkManager, FSecondsPassed / (1 / 60));
-  EFK_Manager_SetMatrix(Self.FEfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transform^.Data));
+  EFK_Manager_SetMatrix(Self.FEfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transformation^.Transform.Data));
   EFK_Renderer_SetViewMatrix(Self.FEfkRenderer, TEfkMatrix44Ptr(@Params.RenderingCamera.Matrix.Data));
   EFK_Renderer_SetProjectionMatrix(Self.FEfkRenderer, TEfkMatrix44Ptr(@RenderContext.ProjectionMatrix.Data));
   EFK_Renderer_Render(Self.FEfkRenderer, Self.FEfkManager);
