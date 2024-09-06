@@ -79,6 +79,8 @@ type
     procedure GLContextOpen;
     procedure InternalRefreshEffect;
     procedure SetPlayingSpeed(V: Single);
+    procedure RenderEffekseer(const Transformation: TTransformation;
+      const PassParams: TRenderOnePassParams);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -437,11 +439,10 @@ begin
     Exit;
   if not Self.FIsGLContextInitialized then
     Exit;
-  if (not Self.Visible) or Params.InShadow or (not Params.Transparent) or (Params.StencilTest > 0) then
+  if (not Self.Visible) then
     Exit;
   if Self.FIsExistsInManager then
   begin
-    EFK_Manager_SetMatrix(Self.FEfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transformation^.Transform.Data));
     // Since Effekseer has it's own culling, and there's a lack of information on which handle is visible,
     // these statistics are not accurate when represent TCastleEffekseer
     Inc(Params.Statistics.ScenesVisible);
@@ -450,10 +451,13 @@ begin
   PreviousProgram := RenderContext.CurrentProgram;
 
   EFK_Manager_Update(Self.FEfkManager, FSecondsPassed / (1 / 60));
-  EFK_Manager_SetMatrix(Self.FEfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Params.Transformation^.Transform.Data));
   EFK_Renderer_SetViewMatrix(Self.FEfkRenderer, TEfkMatrix44Ptr(@Params.RenderingCamera.Matrix.Data));
   EFK_Renderer_SetProjectionMatrix(Self.FEfkRenderer, TEfkMatrix44Ptr(@RenderContext.ProjectionMatrix.Data));
-  EFK_Renderer_Render(Self.FEfkRenderer, Self.FEfkManager);
+
+  { We actually render later, knowing TRenderOnePassParams,
+    which allows to render only under proper conditions like proper
+    TRenderOnePassParams.UsingBlending. }
+  Params.AddRenderEvent(RenderEffekseer);
 
   // DrawCalls is considered as "ShapesRendered" at the moment
   DrawCalls := EFK_Renderer_GetDrawCallCount(Self.FEfkRenderer);
@@ -465,6 +469,18 @@ begin
     PreviousProgram.Disable;
     PreviousProgram.Enable;
   end;
+end;
+
+procedure TCastleEffekseer.RenderEffekseer(const Transformation: TTransformation;
+  const PassParams: TRenderOnePassParams);
+begin
+  if PassParams.DisableShadowVolumeCastingLights or
+     (not PassParams.UsingBlending) or
+     PassParams.InsideStencilTest then
+    Exit;
+
+  EFK_Manager_SetMatrix(Self.FEfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Transformation.Transform.Data));
+  EFK_Renderer_Render(Self.FEfkRenderer, Self.FEfkManager);
 end;
 
 procedure TCastleEffekseer.RefreshEffect;

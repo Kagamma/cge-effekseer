@@ -50,7 +50,9 @@ begin
   { Find components, by name, that we need to access from code }
   Self.LabelFps := Self.DesignedComponent('LabelFps') as TCastleLabel;
   Self.Viewport := Self.DesignedComponent('Viewport') as TCastleViewport;
-  for I := 0 to 0 do
+  { Note: do not add with I = 0, as it would overlap with TCastleEffekseer
+    present already in designed castle-data:/gamestatemain.castle-user-interface }
+  for I := 1 to 3 do
   begin
     Emitter := TCastleEffekseer.Create(Self);
     Emitter.URL := 'castle-data:/efk/Laser01.efk';
