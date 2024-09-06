@@ -431,7 +431,6 @@ end;
 
 procedure TCastleEffekseer.LocalRender(const Params: TRenderParams);
 var
-  PreviousProgram: TGLSLProgram;
   DrawCalls: LongWord;
 begin
   inherited;
@@ -448,7 +447,6 @@ begin
     Inc(Params.Statistics.ScenesVisible);
     Inc(Params.Statistics.ScenesRendered);
   end;
-  PreviousProgram := RenderContext.CurrentProgram;
 
   EFK_Manager_Update(Self.FEfkManager, FSecondsPassed / (1 / 60));
   EFK_Renderer_SetViewMatrix(Self.FEfkRenderer, TEfkMatrix44Ptr(@Params.RenderingCamera.Matrix.Data));
@@ -463,24 +461,27 @@ begin
   DrawCalls := EFK_Renderer_GetDrawCallCount(Self.FEfkRenderer);
   Inc(Params.Statistics.ShapesVisible, DrawCalls);
   Inc(Params.Statistics.ShapesRendered, DrawCalls);
-
-  if PreviousProgram <> nil then
-  begin
-    PreviousProgram.Disable;
-    PreviousProgram.Enable;
-  end;
 end;
 
 procedure TCastleEffekseer.RenderEffekseer(const Transformation: TTransformation;
   const PassParams: TRenderOnePassParams);
+var
+  PreviousProgram: TGLSLProgram;
 begin
   if PassParams.DisableShadowVolumeCastingLights or
      (not PassParams.UsingBlending) or
      PassParams.InsideStencilTest then
     Exit;
 
+  PreviousProgram := RenderContext.CurrentProgram;
   EFK_Manager_SetMatrix(Self.FEfkManager, Self.EfkHandle, TEfkMatrix44Ptr(@Transformation.Transform.Data));
   EFK_Renderer_Render(Self.FEfkRenderer, Self.FEfkManager);
+
+  if PreviousProgram <> nil then
+  begin
+    PreviousProgram.Disable;
+    PreviousProgram.Enable;
+  end;
 end;
 
 procedure TCastleEffekseer.RefreshEffect;
