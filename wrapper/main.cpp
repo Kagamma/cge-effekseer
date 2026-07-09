@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <algorithm>
 
 #include <Effekseer.h>
 #include <EffekseerRendererGL.h>
@@ -72,11 +73,11 @@ public:
 		this->position = position > this->size - 1 ? this->size - 1 : position;
 	}
 
-	int GetPosition() override {
+	int GetPosition() const override {
 		return data == nullptr ? this->position : -1;
 	}
 
-	size_t GetLength() override {
+	size_t GetLength() const override {
 		return this->size;
 	}
 };
@@ -86,11 +87,11 @@ public:
 	CastleFileInterface() {};
 	~CastleFileInterface() override {};
 
-	FileReader* OpenRead(const char16_t* path) override {
-		return new CastleFileReader(path);
+	FileReaderRef OpenRead(const char16_t* path) override {
+		return MakeRefPtr<CastleFileReader>(path);
 	}
 
-	FileWriter* OpenWrite(const char16_t* path) override {
+	FileWriterRef OpenWrite(const char16_t* path) override {
 		return nullptr;
 	}
 };
@@ -180,11 +181,12 @@ public:
 		Backend::TextureParameter param;
 		param.Size = {width, height};
 		param.Format = Backend::TextureFormatType::R8G8B8A8_UNORM;
-		param.GenerateMipmap = isMipMap;
-		param.InitialData.assign(textureData.data(), textureData.data() + width * height * 4);
+		param.MipLevelCount = isMipMap ? 0 : 1;
+		Effekseer::CustomVector<uint8_t> initialData;
+		initialData.assign(textureData.data(), textureData.data() + width * height * 4);
 
 		auto texture = MakeRefPtr<Texture>();
-		texture->SetBackend(graphicsDevice->CreateTexture(param));
+		texture->SetBackend(graphicsDevice->CreateTexture(param, initialData));
 
 		return texture;
 	}
@@ -223,17 +225,19 @@ __dllexport void __cdecl EFK_Manager_SetDefaultRenders(Manager* manager, Rendere
 	manager->SetRingRenderer(renderer->CreateRingRenderer());
 	manager->SetTrackRenderer(renderer->CreateTrackRenderer());
 	manager->SetModelRenderer(renderer->CreateModelRenderer());
-	// TODO: Still doesnt understand much about this
-	manager->CreateCullingWorld(1000.0f, 1000.0f, 1000.0f, 1);
+    manager->SetGpuParticleFactory(renderer->CreateGpuParticleFactory());
+	manager->SetGpuParticleSystem(renderer->CreateGpuParticleSystem());
+	// TODO: Still doesnt understand much about this. UPDATE: Removed in v1.8...
+	// manager->CreateCullingWorld(1000.0f, 1000.0f, 1000.0f, 1);
 }
 
 __dllexport void __cdecl EFK_Manager_SetDefaultLoaders(Manager* manager, Renderer* renderer) {
 	if (loader_load != nullptr && loader_free != nullptr) {
 	//	manager->SetTextureLoader(EffekseerRenderer::CreateTextureLoader(renderer->GetGraphicsDevice(), new CastleFileInterface(), ColorSpaceType::Gamma));
 		manager->SetTextureLoader(TextureLoaderRef(new CastleTextureLoader(renderer->GetGraphicsDevice())));
-		manager->SetModelLoader(EffekseerRenderer::CreateModelLoader(renderer->GetGraphicsDevice(), new CastleFileInterface()));
-		manager->SetMaterialLoader(CreateMaterialLoader(renderer->GetGraphicsDevice(), new CastleFileInterface()));
-		manager->SetCurveLoader(MakeRefPtr<CurveLoader>(new CastleFileInterface()));
+		manager->SetModelLoader(EffekseerRenderer::CreateModelLoader(renderer->GetGraphicsDevice(), MakeRefPtr<CastleFileInterface>()));
+		manager->SetMaterialLoader(CreateMaterialLoader(renderer->GetGraphicsDevice(), MakeRefPtr<CastleFileInterface>()));
+		manager->SetCurveLoader(MakeRefPtr<CurveLoader>());
 	} else {
 		manager->SetTextureLoader(renderer->CreateTextureLoader());
 		manager->SetModelLoader(renderer->CreateModelLoader());
@@ -305,8 +309,14 @@ __dllexport void __cdecl EFK_Renderer_SetProjectionMatrix(Renderer* renderer, fl
 }
 
 __dllexport void __cdecl EFK_Renderer_Render(Renderer* renderer, Manager* manager) {
+	auto device = renderer->GetGraphicsDevice();
+	// As of v1.80.5, OpenGL backend still does not support GpuParticles.
+	device->BeginComputePass();
+	manager->Compute();
+	device->EndComputePass();
 	renderer->BeginRendering();
-	manager->CalcCulling(renderer->GetCameraProjectionMatrix(), true);
+	// Removed in v1.8...
+	// manager->CalcCulling(renderer->GetCameraProjectionMatrix(), true);
 	manager->Draw();
 	renderer->EndRendering();
 }
