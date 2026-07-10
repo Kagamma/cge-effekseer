@@ -1,7 +1,7 @@
 Effekseer integration for Castle Game Engine.
 
 ### Precompiled dynamic library
-(See Releases section) For lazy people ;). This contains binaries for windows (x86_64), linux (x86_64) and android (armeabi-v7a), built with -O3 optimization.
+(See Releases section) For lazy people ;). This contains binaries for windows (x86_64), linux (x86_64) and android (arm64-v8a), built with -O3 optimization.
 
 ### How to use
 
